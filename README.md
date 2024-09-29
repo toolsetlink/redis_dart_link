@@ -9,7 +9,7 @@ Redis client for Dart
 * [redis-dart](https://github.com/ra1u/redis-dart)
 
 
-Example:
+## Example:
 
 ```
 import 'package:redis_dart_link/redis_dart_link.dart';
