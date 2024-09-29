@@ -1,0 +1,25 @@
+# Dart & Flutter specific files
+.dart_tool/
+.packages
+.pub-cache/
+pubspec.lock
+build/
+
+# Generated files by pub
+*.dart_tool/
+
+# Flutter specific files
+ios/Flutter/.generated/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/FlutterPluginRegistrant/*
+
+# IDE specific files
+*.idea/
+*.iml
+.vscode/
+*.swp
+
+# Operating System files
+.DS_Store
+Thumbs.db
