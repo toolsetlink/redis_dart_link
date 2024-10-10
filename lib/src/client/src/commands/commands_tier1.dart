@@ -185,6 +185,17 @@ class RespCommandsTier1 {
     ]);
   }
 
+  Future<RespType> zscan(String key, int cursor,
+      {String? pattern, int? count}) async {
+    return tier0.execute([
+      'ZSCAN',
+      key,
+      '$cursor',
+      if (pattern != null) ...['MATCH', pattern],
+      if (count != null) ...['COUNT', count],
+    ]);
+  }
+
   /// 键(key) End
 
   /// 字符串(String) Start
@@ -418,6 +429,10 @@ class RespCommandsTier1 {
 
   Future<RespType> sadd(String key, List<Object> values) async {
     return tier0.execute(['SADD', key, ...values]);
+  }
+
+  Future<RespType> scard(String key) async {
+    return tier0.execute(['SCARD', key]);
   }
 
   Future<RespType> srem(String key, List<Object> members) async {

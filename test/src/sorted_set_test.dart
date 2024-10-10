@@ -1,5 +1,5 @@
 import 'package:redis_dart_link/redis_dart_link.dart';
-import 'package:redis_dart_link/src/model/sscan.dart';
+import 'package:redis_dart_link/src/model/zscan.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -16,12 +16,9 @@ void main() {
     // Connect to the Redis server.
     await client.connect();
 
-    await client.sadd(key: 'test-set', values: ["1", "2"]);
+    await client.zadd(key: 'test-zset', values: {"key1": 1, 'key2': 2});
 
-    Sscan value1 = await client.sscan('test-set', 0);
+    Zscan value1 = await client.zscan('test-zset', 0);
     print(value1.keys);
-
-    int value2 = await client.scard('test-set');
-    print(value2);
   });
 }

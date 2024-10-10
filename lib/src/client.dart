@@ -10,6 +10,7 @@ import 'model/hscan.dart';
 import 'model/scan.dart';
 import 'model/set.dart';
 import 'model/sscan.dart';
+import 'model/zscan.dart';
 
 /// {@template redis_client}
 /// A client for interacting with a Redis server.
@@ -513,6 +514,12 @@ class RedisClient {
     });
   }
 
+  Future<int> scard(String key) async {
+    return await _runWithRetryNew(() async {
+      return await RespCommandsTier2(_client!).scard(key);
+    });
+  }
+
   Future<List<String?>> smembers(String key) async {
     return await _runWithRetryNew(() async {
       return await RespCommandsTier2(_client!).smembers(key);
@@ -553,6 +560,15 @@ class RedisClient {
     return await _runWithRetryNew(() async {
       return await RespCommandsTier2(_client!).zrem(key, members);
     });
+  }
+
+  Future<Zscan> zscan(String key, int cursor,
+      {String? pattern, int? count}) async {
+    ZscanResult result = await _runWithRetryNew(() async {
+      return await RespCommandsTier2(_client!).zscan(key, cursor, count: count);
+    });
+
+    return Zscan.fromResult(result);
   }
 
   ///  ------------------------------   HyperLogLog  ------------------------------

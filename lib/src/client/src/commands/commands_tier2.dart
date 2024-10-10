@@ -122,6 +122,40 @@ class SscanResult {
   String toString() => 'SscanResult(cursor: $cursor, keys: $keys)';
 }
 
+class ZscanResult {
+  int _cursor = 0;
+  Map<String, String> _keys = {};
+
+  ZscanResult._(List<RespType>? result) {
+    if (result != null && result.length == 2) {
+      final element1 = result[0] as RespBulkString;
+      final payload1 = element1.payload;
+      if (payload1 != null) {
+        _cursor = int.parse(payload1);
+      }
+      final element2 = result[1] as RespArray;
+      final payload2 = element2.payload;
+      if (payload2 != null) {
+        // 将原来处理列表的逻辑改为处理映射
+        for (var i = 0; i < payload2.length; i += 2) {
+          var keyItem = payload2[i] as RespBulkString;
+          var valueItem = payload2[i + 1] as RespBulkString;
+          if (keyItem.payload != null && valueItem.payload != null) {
+            _keys[keyItem.payload!] = valueItem.payload!;
+          }
+        }
+      }
+    }
+  }
+
+  int get cursor => _cursor;
+
+  Map<String, String> get keys => _keys;
+
+  @override
+  String toString() => 'HscanResult(cursor: $_cursor, keys: $_keys)';
+}
+
 ///
 /// Easy to use API for the Redis commands.
 /// 易于使用Redis命令的API。
@@ -781,6 +815,10 @@ class RespCommandsTier2 {
     return (await tier1.sadd(key, values)).toInteger().payload;
   }
 
+  Future<int> scard(String key) async {
+    return (await tier1.scard(key)).toInteger().payload;
+  }
+
   Future<int> srem(String key, List<Object> members) async {
     return (await tier1.srem(key, members)).toInteger().payload;
   }
@@ -833,6 +871,15 @@ class RespCommandsTier2 {
             .toArray()
             .payload;
     return SscanResult._(result);
+  }
+
+  Future<ZscanResult> zscan(String key, int cursor,
+      {String? pattern, int? count}) async {
+    final result =
+        (await tier1.zscan(key, cursor, pattern: pattern, count: count))
+            .toArray()
+            .payload;
+    return ZscanResult._(result);
   }
 
   ///
