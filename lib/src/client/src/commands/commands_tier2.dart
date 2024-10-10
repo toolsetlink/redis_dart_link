@@ -53,14 +53,73 @@ class ScanResult {
 
   List<String> get keys => _keys;
 
-  ///
-  /// Returns true, if there more elements (cursor != 0).
-  /// 如果有更多的元素(cursor!= 0)，则返回true。
-  ///
-  bool get hasMoreElements => _cursor != 0;
+  @override
+  String toString() => 'ScanResult(cursor: $cursor, keys: $keys)';
+}
+
+class HscanResult {
+  int _cursor = 0;
+  Map<String, String> _keys = {};
+
+  HscanResult._(List<RespType>? result) {
+    if (result != null && result.length == 2) {
+      final element1 = result[0] as RespBulkString;
+      final payload1 = element1.payload;
+      if (payload1 != null) {
+        _cursor = int.parse(payload1);
+      }
+      final element2 = result[1] as RespArray;
+      final payload2 = element2.payload;
+      if (payload2 != null) {
+        // 将原来处理列表的逻辑改为处理映射
+        for (var i = 0; i < payload2.length; i += 2) {
+          var keyItem = payload2[i] as RespBulkString;
+          var valueItem = payload2[i + 1] as RespBulkString;
+          if (keyItem.payload != null && valueItem.payload != null) {
+            _keys[keyItem.payload!] = valueItem.payload!;
+          }
+        }
+      }
+    }
+  }
+
+  int get cursor => _cursor;
+
+  Map<String, String> get keys => _keys;
 
   @override
-  String toString() => 'ScanResult(cursor: $_cursor, keys: $_keys)';
+  String toString() => 'HscanResult(cursor: $_cursor, keys: $_keys)';
+}
+
+class SscanResult {
+  int _cursor = 0;
+  List<String> _keys = [];
+
+  SscanResult._(List<RespType>? result) {
+    if (result != null && result.length == 2) {
+      final element1 = result[0] as RespBulkString;
+      final payload1 = element1.payload;
+      if (payload1 != null) {
+        _cursor = int.parse(payload1);
+      }
+
+      final element2 = result[1] as RespArray;
+      final payload2 = element2.payload;
+      if (payload2 != null) {
+        _keys = payload2
+            .cast<RespBulkString>()
+            .map((e) => e.payload!)
+            .toList(growable: false);
+      }
+    }
+  }
+
+  int get cursor => _cursor;
+
+  List<String> get keys => _keys;
+
+  @override
+  String toString() => 'SscanResult(cursor: $cursor, keys: $keys)';
 }
 
 ///
@@ -131,16 +190,16 @@ class RespCommandsTier2 {
     );
   }
 
-  Future<SetResult> set_bak(String key, Object value,
-      {ExpireMode? expire, SetMode? mode, bool get = false}) async {
-    final result =
-        (await tier1.set_bak(key, value, expire: expire, mode: mode, get: get));
-    return result.handleAs<SetResult>(
-      simple: (_) => SetResult._(true, null),
-      bulk: (type) => SetResult._(type.payload != null, type.payload),
-      error: (_) => SetResult._(false, null),
-    );
-  }
+  // Future<SetResult> set_bak(String key, Object value,
+  //     {ExpireMode? expire, SetMode? mode, bool get = false}) async {
+  //   final result =
+  //       (await tier1.set_bak(key, value, expire: expire, mode: mode, get: get));
+  //   return result.handleAs<SetResult>(
+  //     simple: (_) => SetResult._(true, null),
+  //     bulk: (type) => SetResult._(type.payload != null, type.payload),
+  //     error: (_) => SetResult._(false, null),
+  //   );
+  // }
 
   ///
   /// Returns the value for the given [key].
@@ -340,6 +399,10 @@ class RespCommandsTier2 {
   ///
   Future<int> hdel(String key, List<String> fields) async {
     return (await tier1.hdel(key, fields)).toInteger().payload;
+  }
+
+  Future<int> hlen(String key) async {
+    return (await tier1.hlen(key)).toInteger().payload;
   }
 
   ///
@@ -690,7 +753,9 @@ class RespCommandsTier2 {
   /// Returns the element being popped and pushed.
   ///
   Future<String?> rpoplpush(String source, String destination) async {
-    return (await tier1.rpoplpush(source, destination)).toBulkString().payload;
+    return (await tier1.rpoplpush(source, destination))
+        .toSimpleString()
+        .payload;
   }
 
   ///
@@ -752,6 +817,24 @@ class RespCommandsTier2 {
     return ScanResult._(result);
   }
 
+  Future<HscanResult> hscan(String key, int cursor,
+      {String? pattern, int? count}) async {
+    final result =
+        (await tier1.hscan(key, cursor, pattern: pattern, count: count))
+            .toArray()
+            .payload;
+    return HscanResult._(result);
+  }
+
+  Future<SscanResult> sscan(String key, int cursor,
+      {String? pattern, int? count}) async {
+    final result =
+        (await tier1.sscan(key, cursor, pattern: pattern, count: count))
+            .toArray()
+            .payload;
+    return SscanResult._(result);
+  }
+
   ///
   /// Return the number of keys in the currently-selected database.
   ///
@@ -793,8 +876,17 @@ class RespCommandsTier2 {
   /// Lines can contain a section name (starting with a
   /// # character) or a property. All the properties are in
   /// the form of field:value terminated by \r\n.
-  Future<String?> info([String? section]) async {
-    return (await tier1.info(section)).toBulkString().payload;
+  ///
+  Future<List<String>> info([String? section]) async {
+    final bulkString = (await tier1.info(section)).toBulkString().payload;
+
+    if (bulkString != null) {
+      return bulkString
+          .split('\n')
+          .where((e) => e.isNotEmpty)
+          .toList(growable: false);
+    }
+    return [];
   }
 
   ///

@@ -27,7 +27,7 @@ void main() {
       RedisClient client = RedisClient(
         socket: RedisSocketOptions(
           host: '127.0.0.1',
-          port: 9527,
+          port: 6527,
           password: '123456',
         ),
       );

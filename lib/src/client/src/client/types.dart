@@ -67,8 +67,6 @@ abstract class RespType<P> {
   /// Converts this type to a simple string. Throws a
   /// [StateError] if this is not a simple string.
   ///
-  // RespSimpleString toSimpleString() =>
-  //     throw StateError('${toString()} is not a simple string!');
   RespSimpleString toSimpleString() {
     throw StateError(toString());
   }
@@ -77,8 +75,6 @@ abstract class RespType<P> {
   /// Converts this type to a bulk string. Throws a
   /// [StateError] if this is not a bulk string.
   ///
-  // RespBulkString toBulkString() =>
-  //     throw StateError('${toString()} is not a bulk string!');
   RespBulkString toBulkString() {
     throw StateError(toString());
   }
@@ -87,8 +83,6 @@ abstract class RespType<P> {
   /// Converts this type to an integer. Throws a
   /// [StateError] if this is not an integer.
   ///
-  // RespInteger toInteger() =>
-  //     throw StateError('${toString()} is not an integer!');
   RespInteger toInteger() {
     throw StateError(toString());
   }
@@ -97,7 +91,6 @@ abstract class RespType<P> {
   /// Converts this type to an array. Throws a
   /// [StateError] if this is not an array.
   ///
-  // RespArray toArray() => throw StateError('${toString()} is not an array!');
   RespArray toArray() {
     throw StateError(toString());
   }
@@ -106,7 +99,6 @@ abstract class RespType<P> {
   /// Converts this type to an error. Throws a
   /// [StateError] if this is not an error.
   ///
-  // RespError toError() => throw StateError('${toString()} is not an error!');
   RespError toError() {
     throw StateError(toString());
   }

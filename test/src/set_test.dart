@@ -1,5 +1,5 @@
 import 'package:redis_dart_link/redis_dart_link.dart';
-import 'package:redis_dart_link/src/model/set.dart';
+import 'package:redis_dart_link/src/model/sscan.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -8,7 +8,7 @@ void main() {
     RedisClient client = RedisClient(
       socket: RedisSocketOptions(
         host: '127.0.0.1',
-        port: 9527,
+        port: 6527,
         password: '123456',
       ),
     );
@@ -16,10 +16,9 @@ void main() {
     // Connect to the Redis server.
     await client.connect();
 
-    await client.select(1);
+    await client.sadd(key: 'test-set', values: ["1", "2"]);
 
-    SetModel val = await client.set("test set", "test value");
-
-    print("test val $val");
+    Sscan value1 = await client.sscan('test-set', 0);
+    print(value1.keys);
   });
 }

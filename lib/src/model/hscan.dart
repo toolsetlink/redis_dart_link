@@ -1,16 +1,16 @@
 import '../client/commands.dart';
 
-class Scan {
+class Hscan {
   final int cursor; // 游标
-  final List<String?> keys; // key列表
+  final Map<String, String> keys; // key列表
 
-  Scan({
+  Hscan({
     required this.cursor,
     required this.keys,
   });
 
-  factory Scan.fromResult(ScanResult result) {
-    return Scan(
+  factory Hscan.fromResult(HscanResult result) {
+    return Hscan(
       cursor: result.cursor,
       keys: result.keys,
     );

@@ -6,7 +6,10 @@ import './model/info.dart';
 import 'client/client.dart';
 import 'client/commands.dart';
 import 'client/server.dart';
+import 'model/hscan.dart';
+import 'model/scan.dart';
 import 'model/set.dart';
+import 'model/sscan.dart';
 
 /// {@template redis_client}
 /// A client for interacting with a Redis server.
@@ -332,7 +335,6 @@ class RedisClient {
     }
   }
 
-
   /// 执行命令行
   Future<dynamic> execute(String str) async {
     List<Object> commandList =
@@ -366,10 +368,11 @@ class RedisClient {
     });
   }
 
-  Future<ScanResult> scan(int cursor, {String? pattern, int? count}) async {
-    return await _runWithRetryNew(() async {
+  Future<Scan> scan(int cursor, {String? pattern, int? count}) async {
+    ScanResult result = await _runWithRetryNew(() async {
       return await RespCommandsTier2(_client!).scan(cursor, count: count);
     });
+    return Scan.fromResult(result);
   }
 
   Future<int> ttl(String key) async {
@@ -392,7 +395,7 @@ class RedisClient {
     });
   }
 
-  Future<SetModel> set(
+  Future<Set> set(
     Object key,
     Object value, {
     Duration? ex,
@@ -408,7 +411,7 @@ class RedisClient {
           ex: ex, exat: exat, px: px, pxat: pxat, nx: nx, xx: xx, get: get);
     });
 
-    return SetModel.fromVal(result.ok, result.old);
+    return Set.fromResult(result);
   }
 
   Future<int> strlen(String key) async {
@@ -422,6 +425,12 @@ class RedisClient {
   Future<int> hdel({required String key, required List<String> fields}) async {
     return await _runWithRetryNew(() async {
       return await RespCommandsTier2(_client!).hdel(key, fields);
+    });
+  }
+
+  Future<int> hlen(String key) async {
+    return await _runWithRetryNew(() async {
+      return await RespCommandsTier2(_client!).hlen(key);
     });
   }
 
@@ -447,7 +456,22 @@ class RedisClient {
     });
   }
 
+  Future<Hscan> hscan(String key, int cursor,
+      {String? pattern, int? count}) async {
+    HscanResult result = await _runWithRetryNew(() async {
+      return await RespCommandsTier2(_client!).hscan(key, cursor, count: count);
+    });
+
+    return Hscan.fromResult(result);
+  }
+
   ///  ------------------------------   List  ------------------------------
+
+  Future<int> llen(String key) async {
+    return await _runWithRetryNew(() async {
+      return await RespCommandsTier2(_client!).llen(key);
+    });
+  }
 
   Future<int> lpush({required String key, required List<Object> values}) async {
     return await _runWithRetryNew(() async {
@@ -501,6 +525,15 @@ class RedisClient {
     });
   }
 
+  Future<Sscan> sscan(String key, int cursor,
+      {String? pattern, int? count}) async {
+    SscanResult result = await _runWithRetryNew(() async {
+      return await RespCommandsTier2(_client!).sscan(key, cursor, count: count);
+    });
+
+    return Sscan.fromResult(result);
+  }
+
   ///  ------------------------------   SortedSet  ------------------------------
 
   Future<int> zadd(
@@ -545,15 +578,11 @@ class RedisClient {
 
   ///  ------------------------------   server  ------------------------------
 
-  Future<Info?> info([String? section]) async {
-    String? result = await _runWithRetryNew(() async {
+  Future<Info> info([String? section]) async {
+    List<String> result = await _runWithRetryNew(() async {
       return await RespCommandsTier2(_client!).info(section);
     });
 
-    //检查 result 是否为 null
-    if (result == null) {
-      return null;
-    }
     return Info.fromResult(result);
   }
 

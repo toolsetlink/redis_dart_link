@@ -1,6 +1,5 @@
 // 基础
-// export 'src/client.dart' show RedisClient, RedisJson;
-export 'src/client.dart' show RedisClient;
+export 'src/client.dart' show RedisClient, RedisJson;
 // opt
 export 'src/command_options.dart' show RedisCommandOptions;
 // 错误

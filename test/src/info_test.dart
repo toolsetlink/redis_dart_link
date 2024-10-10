@@ -25,7 +25,7 @@ void main() {
     RedisClient client = RedisClient(
       socket: RedisSocketOptions(
         host: '127.0.0.1',
-        port: 9527,
+        port: 6527,
         password: '123456',
       ),
       logger: MyCustomLogger(),
@@ -34,33 +34,12 @@ void main() {
     // Connect to the Redis server.
     await client.connect();
 
-    Info? redisInfo = await client.info();
-    print('Redis version1: ${redisInfo?.server.redisVersion}');
+    Info redisInfo = await client.info();
 
-    Info? redisInfo1 = await client.info();
-    print('Redis version1: ${redisInfo1?.server.redisVersion}');
-
-    // 睡眠 5 秒
-    // await Future.delayed(Duration(seconds: 20));
-    // print("sleep 20");
-
-    // await client.xPing();
-    // print("ping");
-
-    // await Future.delayed(Duration(seconds: 20));
-    // print("sleep 20");
-
-    // print('Redis info: $redisInfo');
-    // print('Redis version1: ${redisInfo?.server.redisVersion}');
-    // print('Connected clients: ${redisInfo?.clients.connectedClients}');
-    // print('Used memory (bytes): ${redisInfo?.memory.usedMemory}');
-    // print('keyspace.length: ${redisInfo?.keyspace.databases.toString()}');
-    // print('keyspace.length: ${redisInfo?.keyspace.databases.length}');
-    // print('keyspace.length: ${redisInfo?.keyspace.databases[0].keys}');
-    // print('keyspace.length: ${redisInfo?.keyspace.databases[1].keys}');
+    print('Redis Info: ${redisInfo}');
 
     // await Future.delayed(Duration(seconds: 20), () {
-    //   print('Redis version2: ${redisInfo?.server.redisVersion}');
+    //   print('Redis version: ${redisInfo.server.redisVersion}');
     // });
   });
 }

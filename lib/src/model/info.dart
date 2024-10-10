@@ -35,10 +35,10 @@ class Info {
     );
   }
 
-  factory Info.fromResult(String result) {
+  factory Info.fromResult(List<String> result) {
     Map<String, String> infoMap = {};
-    List<String> lines = result.split('\r\n'); // 根据换行符分割结果到单独的行
-    for (String line in lines) {
+
+    for (String line in result) {
       // 忽略空行和以 # 开头的行（节名）
       if (line.isEmpty || line.startsWith('#')) {
         continue;

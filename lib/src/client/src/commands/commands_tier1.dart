@@ -163,6 +163,28 @@ class RespCommandsTier1 {
     ]);
   }
 
+  Future<RespType> hscan(String key, int cursor,
+      {String? pattern, int? count}) async {
+    return tier0.execute([
+      'HSCAN',
+      key,
+      '$cursor',
+      if (pattern != null) ...['MATCH', pattern],
+      if (count != null) ...['COUNT', count],
+    ]);
+  }
+
+  Future<RespType> sscan(String key, int cursor,
+      {String? pattern, int? count}) async {
+    return tier0.execute([
+      'SSCAN',
+      key,
+      '$cursor',
+      if (pattern != null) ...['MATCH', pattern],
+      if (count != null) ...['COUNT', count],
+    ]);
+  }
+
   /// 键(key) End
 
   /// 字符串(String) Start
@@ -294,6 +316,10 @@ class RespCommandsTier1 {
 
   Future<RespType> hdel(String key, List<String> fields) async {
     return tier0.execute(['HDEL', key, ...fields]);
+  }
+
+  Future<RespType> hlen(String key) async {
+    return tier0.execute(['HLEN', key]);
   }
 
   Future<RespType> hexists(String key, String field) async {
