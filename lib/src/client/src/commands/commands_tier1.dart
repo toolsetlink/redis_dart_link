@@ -435,6 +435,10 @@ class RespCommandsTier1 {
     return tier0.execute(['SCARD', key]);
   }
 
+  Future<RespType> zcard(String key) async {
+    return tier0.execute(['ZCARD', key]);
+  }
+
   Future<RespType> srem(String key, List<Object> members) async {
     return tier0.execute(['SREM', key, ...members]);
   }

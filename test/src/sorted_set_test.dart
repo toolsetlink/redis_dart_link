@@ -20,5 +20,8 @@ void main() {
 
     Zscan value1 = await client.zscan('test-zset', 0);
     print(value1.keys);
+
+    int value2 = await client.zcard('test-zset');
+    print(value2);
   });
 }

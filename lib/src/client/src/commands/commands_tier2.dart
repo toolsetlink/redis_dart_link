@@ -819,6 +819,10 @@ class RespCommandsTier2 {
     return (await tier1.scard(key)).toInteger().payload;
   }
 
+  Future<int> zcard(String key) async {
+    return (await tier1.zcard(key)).toInteger().payload;
+  }
+
   Future<int> srem(String key, List<Object> members) async {
     return (await tier1.srem(key, members)).toInteger().payload;
   }

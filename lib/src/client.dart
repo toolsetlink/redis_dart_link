@@ -550,6 +550,12 @@ class RedisClient {
     });
   }
 
+  Future<int> zcard(String key) async {
+    return await _runWithRetryNew(() async {
+      return await RespCommandsTier2(_client!).zcard(key);
+    });
+  }
+
   Future<Map<String, double>> zrange(String key, int start, int stop) async {
     return await _runWithRetryNew(() async {
       return await RespCommandsTier2(_client!).zrange(key, start, stop);
