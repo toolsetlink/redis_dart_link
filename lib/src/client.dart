@@ -9,7 +9,7 @@ import 'client/server.dart';
 import 'model/hscan.dart';
 import 'model/scan.dart';
 import 'model/set.dart';
-import 'model/slowlogGet.dart';
+import 'model/slowlog_get.dart';
 import 'model/sscan.dart';
 import 'model/zscan.dart';
 
