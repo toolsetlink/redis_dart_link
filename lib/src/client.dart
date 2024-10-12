@@ -9,6 +9,7 @@ import 'client/server.dart';
 import 'model/hscan.dart';
 import 'model/scan.dart';
 import 'model/set.dart';
+import 'model/slowlogGet.dart';
 import 'model/sscan.dart';
 import 'model/zscan.dart';
 
@@ -606,6 +607,26 @@ class RedisClient {
     });
 
     return Info.fromResult(result);
+  }
+
+  Future<SlowlogGet> slowlogGet(int count) async {
+    SlowlogGetResult result = await _runWithRetryNew(() async {
+      return await RespCommandsTier2(_client!).slowlogGet(count);
+    });
+
+    return SlowlogGet.fromResult(result);
+  }
+
+  Future<int> slowlogLen() async {
+    return await _runWithRetryNew(() async {
+      return await RespCommandsTier2(_client!).slowlogLen();
+    });
+  }
+
+  Future<void> slowlogReset() async {
+    return await _runWithRetryNew(() async {
+      return await RespCommandsTier2(_client!).slowlogReset();
+    });
   }
 
   /// ------------------------------  end  -----------------------------
