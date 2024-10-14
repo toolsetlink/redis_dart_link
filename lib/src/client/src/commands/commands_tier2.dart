@@ -149,34 +149,71 @@ class ZscanResult {
 }
 
 class SlowlogGetResult {
-  int _cursor = 0;
-  List<String> _keys = [];
+  List<SlowlogGetInfoResult> _list = [];
 
   SlowlogGetResult._(List<RespType>? result) {
-    if (result != null && result.length == 2) {
-      final element1 = result[0] as RespBulkString;
-      final payload1 = element1.payload;
-      if (payload1 != null) {
-        _cursor = int.parse(payload1);
-      }
+    if (result != null) {
+      for (var item in result) {
+        if (item is RespArray) {
+          final payload = item.payload;
 
-      final element2 = result[1] as RespArray;
-      final payload2 = element2.payload;
-      if (payload2 != null) {
-        _keys = payload2
-            .cast<RespBulkString>()
-            .map((e) => e.payload!)
-            .toList(growable: false);
+          if (payload != null && payload.length == 6) {
+            // 提取 id、timestamp 和 duration
+            final id = (payload[0] as RespInteger).payload;
+            final timestamp = (payload[1] as RespInteger).payload;
+            final duration = (payload[2] as RespInteger).payload;
+
+            // // 提取 command，command 是一个数组
+            final commandArray = (payload[3] as RespArray).payload;
+            List<String>? command = [];
+            if (commandArray != null) {
+              command = commandArray.map((cmd) {
+                return (cmd as RespBulkString).payload ?? '';
+              }).toList(); // 将命令部分转换为 List<String>
+            }
+
+            // 提取 client
+            String? client = (payload[4] as RespBulkString).payload;
+
+            // extraInfo 可以根据需要进行处理，这里假设总是存在且为字符串
+            String? extraInfo =
+                (payload.length > 5 && payload[5] is RespBulkString)
+                    ? (payload[5] as RespBulkString).payload
+                    : '';
+
+            _list.add(SlowlogGetInfoResult(
+              id: id,
+              timestamp: timestamp,
+              duration: duration,
+              command: command,
+              client: client,
+              extraInfo: extraInfo,
+            ));
+          }
+        }
       }
     }
   }
 
-  int get cursor => _cursor;
+  List<SlowlogGetInfoResult> get list => _list;
+}
 
-  List<String> get keys => _keys;
+class SlowlogGetInfoResult {
+  final int id;
+  final int timestamp;
+  final int duration;
+  final List<String>? command;
+  final String? client;
+  final String? extraInfo;
 
-  @override
-  String toString() => 'SlowlogGetResult(cursor: $cursor, keys: $keys)';
+  SlowlogGetInfoResult({
+    required this.id,
+    required this.timestamp,
+    required this.duration,
+    required this.command,
+    required this.client,
+    required this.extraInfo,
+  });
 }
 
 ///
@@ -477,6 +514,20 @@ class RespCommandsTier2 {
   Future<SlowlogGetResult> slowlogGet(int count) async {
     final result = (await tier1.slowlogGet(count)).toArray().payload;
     return SlowlogGetResult._(result);
+  }
+
+  String parseSlowLogEntry(List<dynamic> entry) {
+    // 假设每个 entry 结构如下：
+    // [id, timestamp, execution_time, args_length, command, client_info]
+
+    var id = entry[1]; // ID
+    var timestamp = entry[2]; // 时间戳
+    var executionTime = entry[3]; // 执行时间
+    var command = entry[5]; // 命令
+    var clientInfo = entry[6]; // 客户端信息（假设存在）
+
+    // 格式化输出
+    return 'ID: $id, Timestamp: $timestamp, Execution Time: $executionTimeμs, Command: $command, Client: $clientInfo';
   }
 
   Future<int> slowlogLen() async {
