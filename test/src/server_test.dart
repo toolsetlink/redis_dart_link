@@ -7,12 +7,9 @@ void main() {
     /// Create a new redis instance
     RedisClient client = RedisClient(
       socket: RedisSocketOptions(
-        // host: '127.0.0.1',
-        // port: 6527,
-        // password: '123456',
-        host: 'rm8039i.tjtn.db.lecloud.com',
-        port: 8039,
-        password: 'mwBn029VNp',
+        host: '127.0.0.1',
+        port: 6527,
+        password: '123456',
       ),
     );
 
