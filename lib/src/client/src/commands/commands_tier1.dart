@@ -308,8 +308,12 @@ class RespCommandsTier1 {
     ]);
   }
 
-  Future<RespType> slowlogGet(int count) async {
-    return tier0.execute(['SLOWLOG', 'GET', '$count']);
+  Future<RespType> slowlogGet([int? count]) async {
+    return tier0.execute([
+      'SLOWLOG',
+      'GET',
+      if (count != null) '$count',
+    ]);
   }
 
   Future<RespType> slowlogLen() async {

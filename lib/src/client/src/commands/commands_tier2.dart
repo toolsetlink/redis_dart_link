@@ -511,23 +511,14 @@ class RespCommandsTier2 {
     return [];
   }
 
-  Future<SlowlogGetResult> slowlogGet(int count) async {
-    final result = (await tier1.slowlogGet(count)).toArray().payload;
-    return SlowlogGetResult._(result);
-  }
-
-  String parseSlowLogEntry(List<dynamic> entry) {
-    // 假设每个 entry 结构如下：
-    // [id, timestamp, execution_time, args_length, command, client_info]
-
-    var id = entry[1]; // ID
-    var timestamp = entry[2]; // 时间戳
-    var executionTime = entry[3]; // 执行时间
-    var command = entry[5]; // 命令
-    var clientInfo = entry[6]; // 客户端信息（假设存在）
-
-    // 格式化输出
-    return 'ID: $id, Timestamp: $timestamp, Execution Time: $executionTimeμs, Command: $command, Client: $clientInfo';
+  Future<SlowlogGetResult> slowlogGet({int? count}) async {
+    if (count == null) {
+      final result = (await tier1.slowlogGet()).toArray().payload;
+      return SlowlogGetResult._(result);
+    } else {
+      final result = (await tier1.slowlogGet(count)).toArray().payload;
+      return SlowlogGetResult._(result);
+    }
   }
 
   Future<int> slowlogLen() async {

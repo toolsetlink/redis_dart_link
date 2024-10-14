@@ -7,9 +7,12 @@ void main() {
     /// Create a new redis instance
     RedisClient client = RedisClient(
       socket: RedisSocketOptions(
-        host: '127.0.0.1',
-        port: 6527,
-        password: '123456',
+        // host: '127.0.0.1',
+        // port: 6527,
+        // password: '123456',
+        host: 'rm8039i.tjtn.db.lecloud.com',
+        port: 8039,
+        password: 'mwBn029VNp',
       ),
     );
 
@@ -19,7 +22,8 @@ void main() {
     // int slowlogLenVal = await client.slowlogLen();
     // print(slowlogLenVal);
 
-    SlowlogGet slowlogGetVal = await client.slowlogGet(100);
+    // SlowlogGet slowlogGetVal = await client.slowlogGet(count: 1000);
+    SlowlogGet slowlogGetVal = await client.slowlogGet();
     print("slowlogGetVal.toString() : ${slowlogGetVal.toString()}");
   });
 }

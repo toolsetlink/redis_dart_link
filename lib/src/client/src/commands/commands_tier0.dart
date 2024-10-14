@@ -22,6 +22,7 @@ class RespCommandsTier0 {
   /// 返回底层服务器连接 响应的RESP类型。
   /// [elements]中的所有元素都被转换为bulk 使用Object.toString()。
   Future<RespType> execute(List<Object?> elements) async {
+    print("elements: $elements");
     return client.writeType(
       RespArray(
         elements

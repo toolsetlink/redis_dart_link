@@ -609,9 +609,13 @@ class RedisClient {
     return Info.fromResult(result);
   }
 
-  Future<SlowlogGet> slowlogGet(int count) async {
+  Future<SlowlogGet> slowlogGet({int? count}) async {
     SlowlogGetResult result = await _runWithRetryNew(() async {
-      return await RespCommandsTier2(_client!).slowlogGet(count);
+      if (count == null) {
+        return await RespCommandsTier2(_client!).slowlogGet();
+      } else {
+        return await RespCommandsTier2(_client!).slowlogGet(count: count);
+      }
     });
 
     return SlowlogGet.fromResult(result);

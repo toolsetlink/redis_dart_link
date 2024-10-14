@@ -32,12 +32,12 @@ class SlowlogGet {
 }
 
 class SlowlogGetInfo {
-  final int id;
-  final int timestamp;
-  final int duration;
-  final List<String>? command;
-  final String? client;
-  final String? extraInfo;
+  final int id; // 命令ID
+  final int timestamp; // 命令执行时间
+  final int duration; // 命令执行时长
+  final List<String>? command; // 命令
+  final String? client; // 客户端
+  final String? extraInfo; // 额外信息
 
   SlowlogGetInfo({
     required this.id,
