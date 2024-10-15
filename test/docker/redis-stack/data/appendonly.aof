@@ -1,0 +1,21 @@
+*2
+$6
+SELECT
+$1
+0
+*3
+$3
+set
+$11
+test-string
+$11
+test-string
+*4
+$8
+JSON.SET
+$9
+user:1000
+$1
+.
+$55
+{"name":"John Doe","age":30,"email":"john@example.com"}

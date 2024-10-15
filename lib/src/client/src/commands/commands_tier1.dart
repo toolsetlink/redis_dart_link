@@ -324,6 +324,35 @@ class RespCommandsTier1 {
     return tier0.execute(['SLOWLOG', 'RESET']);
   }
 
+  ///  ------------------------------   json  ------------------------------
+
+  // # 使用了NX选项，当指定的路径不存在时则设置，如果已经存在则不设置并返回nil
+  // # 使用了XX选项，当指定的路径存在时则设置，如果不存在则不设置并返回nil
+  Future<RespType> jsonSet({
+    required String key,
+    String path = r'$',
+    required String value,
+    bool nx = false,
+    bool xx = false,
+  }) async {
+    return tier0.execute([
+      'JSON.SET',
+      '$key',
+      '$path',
+      '$value',
+      if (nx) 'NX',
+      if (xx) 'XX',
+    ]);
+  }
+
+  Future<RespType> jsonGet({required String key, String path = r'$'}) async {
+    return tier0.execute(['JSON.GET', '$key', '$path']);
+  }
+
+  Future<RespType> jsonDel({required String key, String path = r'$'}) async {
+    return tier0.execute(['JSON.DEL', '$key', '$path']);
+  }
+
   /////////////////////////////////////////////////////////////////////////
 
   Future<RespType> clientList(

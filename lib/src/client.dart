@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import '../redis_dart_link.dart';
@@ -633,67 +634,36 @@ class RedisClient {
     });
   }
 
+  ///  ------------------------------   json  ------------------------------
+
+  Future<void> jsonSet({
+    required String key,
+    String path = r'$',
+    required dynamic value,
+    bool nx = false,
+    bool xx = false,
+  }) async {
+    return await RespCommandsTier2(_client!).jsonSet(
+      key: key,
+      path: path,
+      value: json.encode(value),
+      nx: nx,
+      xx: xx,
+    );
+  }
+
+  Future<String?> jsonGet({required String key, String path = r'$'}) async {
+    return await RespCommandsTier2(_client!).jsonGet(key: key, path: path);
+  }
+
+  Future<int> jsonDel({required String key, String path = r'$'}) async {
+    return await _runWithRetryNew(() async {
+      return await RespCommandsTier2(_client!).jsonDel(key: key, path: path);
+    });
+  }
+
   /// ------------------------------  end  -----------------------------
 }
-
-/// {@template redis_json}
-/// An object that adds support for getting and setting JSON values.
-/// Backed by the RedisJSON module.
-/// https://redis.io/docs/data-types/json/
-/// {@endtemplate}
-// class RedisJson {
-//   RedisJson._({required RedisClient client}) : _client = client;
-//
-//   final RedisClient _client;
-//
-//   /// Set the value of a key.
-//   /// Equivalent to the `JSON.SET` command.
-//   /// https://redis.io/commands/json.set
-//   Future<void> set({
-//     required String key,
-//     required dynamic value,
-//     String path = r'$',
-//   }) {
-//     return _client.execute(['JSON.SET', key, path, json.encode(value)]);
-//   }
-//
-//   /// Gets the value of a key.
-//   /// Returns null if the key does not exist.
-//   /// Equivalent to the `JSON.GET` command.
-//   /// https://redis.io/commands/json.get
-//   Future<dynamic> get({
-//     required String key,
-//     String path = r'$',
-//   }) async {
-//     final result = await _client.execute(['JSON.GET', key, path]);
-//     if (result is String) {
-//       final parts = LineSplitter.split(result);
-//       if (parts.isNotEmpty) {
-//         final decoded = json.decode(parts.first) as List;
-//         if (decoded.isNotEmpty) return decoded.first;
-//       }
-//     }
-//     return null;
-//   }
-//
-//   /// Deletes the specified key.
-//   /// Equivalent to the `JSON.DEL` command.
-//   /// https://redis.io/commands/json.del
-//   Future<void> delete({required String key, String path = r'$'}) {
-//     return _client.execute(['JSON.DEL', key, path]);
-//   }
-//
-//   /// Merges the value of a key with the specified value.
-//   /// Equivalent to the `JSON.MERGE` command.
-//   /// https://redis.io/commands/json.merge
-//   Future<void> merge({
-//     required String key,
-//     required dynamic value,
-//     String path = r'$',
-//   }) {
-//     return _client.execute(['JSON.MERGE', key, path, json.encode(value)]);
-//   }
-// }
 
 extension on RedisSocketOptions {
   /// The connection URI for the Redis server derived from the socket options.

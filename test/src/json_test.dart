@@ -15,12 +15,7 @@ void main() {
     // Connect to the Redis server.
     await client.connect();
 
-    // ScanResult scanResult = await client.scan(0, count: 10000);
-    // print('1 cursor: ${scanResult.cursor}');
-    // print('1 keys.len: ${scanResult.keys.length}');
-    //
-    // scanResult = await client.scan(scanResult.cursor, count: 10000);
-    // print('2 cursor: ${scanResult.cursor}');
-    // print('2 keys.len: ${scanResult.keys.length}');
+    var Val = await client.jsonGet(key: 'user:1000');
+    print("Val.toString() : ${Val}");
   });
 }

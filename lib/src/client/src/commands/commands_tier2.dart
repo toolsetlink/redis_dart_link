@@ -530,6 +530,34 @@ class RespCommandsTier2 {
     return null;
   }
 
+  ///  ------------------------------   json  ------------------------------
+
+  Future<void> jsonSet({
+    required String key,
+    String path = r'$',
+    required dynamic value,
+    bool nx = false,
+    bool xx = false,
+  }) async {
+    (await tier1.jsonSet(
+      key: key,
+      path: path,
+      value: value,
+      nx: nx,
+      xx: xx,
+    ))
+        .toSimpleString();
+    return null;
+  }
+
+  Future<String?> jsonGet({required String key, String path = r'$'}) async {
+    return (await tier1.jsonGet(key: key, path: path)).toBulkString().payload;
+  }
+
+  Future<int> jsonDel({required String key, String path = r'$'}) async {
+    return (await tier1.jsonDel(key: key, path: path)).toInteger().payload;
+  }
+
   //////////////////////////////////////////////////////////////////////////////////
 
   Future<int> exists(List<String> keys) async {
