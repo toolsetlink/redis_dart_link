@@ -251,19 +251,6 @@ class RespCommandsTier2 {
 
   ///  ------------------------------   Key  ------------------------------
 
-  Future<int> del(List<String> keys) async {
-    return (await tier1.del(keys)).toInteger().payload;
-  }
-
-  Future<bool> expire(String key, Duration timeout) async {
-    return (await tier1.expire(key, timeout)).toInteger().payload == 1;
-  }
-
-  Future<void> rename(String keyName, String newKeyName) async {
-    (await tier1.rename(keyName, newKeyName)).toSimpleString();
-    return null;
-  }
-
   Future<ScanResult> scan(int cursor, {String? pattern, int? count}) async {
     final result = (await tier1.scan(cursor, pattern: pattern, count: count))
         .toArray()
@@ -271,19 +258,7 @@ class RespCommandsTier2 {
     return ScanResult._(result);
   }
 
-  Future<int> ttl(String key) async {
-    return (await tier1.ttl(key)).toInteger().payload;
-  }
-
-  Future<String?> type(String key) async {
-    return (await tier1.type(key)).toSimpleString().payload;
-  }
-
   ///  ------------------------------   String  ------------------------------
-
-  Future<String?> get(String key) async {
-    return (await tier1.get(key)).toBulkString().payload;
-  }
 
   Future<SetResult> set(
     Object key,
@@ -315,43 +290,7 @@ class RespCommandsTier2 {
     );
   }
 
-  Future<int> strlen(String key) async {
-    return (await tier1.strlen(key)).toInteger().payload;
-  }
-
   ///  ------------------------------   Hash  ------------------------------
-
-  Future<int> hdel(String key, List<String> fields) async {
-    return (await tier1.hdel(key, fields)).toInteger().payload;
-  }
-
-  Future<int> hlen(String key) async {
-    return (await tier1.hlen(key)).toInteger().payload;
-  }
-
-  Future<Map<String, String?>> hgetall(String key) async {
-    final result = (await tier1.hgetall(key)).toArray().payload;
-
-    final map = <String, String?>{};
-    if (result != null) {
-      for (var i = 0; i < result.length; i += 2) {
-        final key = result[i].toBulkString().payload;
-        final value = result[i + 1].toBulkString().payload;
-        if (key != null) {
-          map[key] = value;
-        }
-      }
-    }
-    return map;
-  }
-
-  Future<bool> hset(String key, String field, Object value) async {
-    return (await tier1.hset(key, field, value)).toInteger().payload == 1;
-  }
-
-  Future<void> hmset(String key, Map<Object, Object> keysAndValues) async {
-    (await tier1.hmset(key, keysAndValues)).toSimpleString();
-  }
 
   Future<HscanResult> hscan(String key, int cursor,
       {String? pattern, int? count}) async {
@@ -364,63 +303,7 @@ class RespCommandsTier2 {
 
   ///  ------------------------------   List  ------------------------------
 
-  Future<int> llen(String key) async {
-    return (await tier1.llen(key)).toInteger().payload;
-  }
-
-  Future<int> lpush(String key, List<Object> values) async {
-    return (await tier1.lpush(key, values)).toInteger().payload;
-  }
-
-  Future<List<String?>> lrange(String key, int start, int stop) async {
-    final result = (await tier1.lrange(key, start, stop)).toArray().payload;
-    if (result != null) {
-      return result
-          .map((e) => e.toBulkString().payload)
-          .toList(growable: false);
-    }
-    return [];
-  }
-
-  Future<int> lrem(String key, int count, Object value) async {
-    return (await tier1.lrem(key, count, value)).toInteger().payload;
-  }
-
-  Future<bool> lset(String key, int index, Object value) async {
-    final result = (await tier1.lset(key, index, value));
-    return result.handleAs<bool>(
-      simple: (_) => true,
-      error: (_) => false,
-    );
-  }
-
-  Future<int> rpush(String key, List<Object> values) async {
-    return (await tier1.rpush(key, values)).toInteger().payload;
-  }
-
   ///  ------------------------------   Set  ------------------------------
-
-  Future<int> sadd(String key, List<Object> values) async {
-    return (await tier1.sadd(key, values)).toInteger().payload;
-  }
-
-  Future<int> scard(String key) async {
-    return (await tier1.scard(key)).toInteger().payload;
-  }
-
-  Future<List<String?>> smembers(String key) async {
-    final result = (await tier1.smembers(key)).toArray().payload;
-    if (result != null) {
-      return result
-          .map((e) => e.toBulkString().payload)
-          .toList(growable: false);
-    }
-    return [];
-  }
-
-  Future<int> srem(String key, List<Object> members) async {
-    return (await tier1.srem(key, members)).toInteger().payload;
-  }
 
   Future<SscanResult> sscan(String key, int cursor,
       {String? pattern, int? count}) async {
@@ -432,14 +315,6 @@ class RespCommandsTier2 {
   }
 
   ///  ------------------------------   SortedSet  ------------------------------
-
-  Future<int> zadd(String key, Map<Object, double> values) async {
-    return (await tier1.zadd(key, values)).toInteger().payload;
-  }
-
-  Future<int> zcard(String key) async {
-    return (await tier1.zcard(key)).toInteger().payload;
-  }
 
   Future<Map<String, double>> zrange(String key, int start, int stop) async {
     // 发送带有 WITHSCORES 选项的 ZRANGE 命令。
@@ -467,10 +342,6 @@ class RespCommandsTier2 {
     return {};
   }
 
-  Future<int> zrem(String key, List<Object> members) async {
-    return (await tier1.zrem(key, members)).toInteger().payload;
-  }
-
   Future<ZscanResult> zscan(String key, int cursor,
       {String? pattern, int? count}) async {
     final result =
@@ -487,10 +358,6 @@ class RespCommandsTier2 {
   ///  ------------------------------   scripting  ------------------------------
 
   ///  ------------------------------   connection  ------------------------------
-
-  Future<String> ping() async {
-    return (await tier1.ping()).toSimpleString().payload;
-  }
 
   Future<void> select(int index) async {
     (await tier1.select(index)).toSimpleString();
@@ -521,15 +388,6 @@ class RespCommandsTier2 {
     }
   }
 
-  Future<int> slowlogLen() async {
-    return (await tier1.slowlogLen()).toInteger().payload;
-  }
-
-  Future<void> slowlogReset() async {
-    (await tier1.slowlogReset()).toSimpleString();
-    return null;
-  }
-
   ///  ------------------------------   json  ------------------------------
 
   Future<void> jsonSet({
@@ -548,14 +406,6 @@ class RespCommandsTier2 {
     ))
         .toSimpleString();
     return null;
-  }
-
-  Future<String?> jsonGet({required String key, String path = r'$'}) async {
-    return (await tier1.jsonGet(key: key, path: path)).toBulkString().payload;
-  }
-
-  Future<int> jsonDel({required String key, String path = r'$'}) async {
-    return (await tier1.jsonDel(key: key, path: path)).toInteger().payload;
   }
 
   Future<List<String>> jsonMget(

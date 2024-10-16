@@ -17,6 +17,6 @@ void main() {
 
     await client.select(1);
 
-    await client.rename('newtest', 'newtest1');
+    await client.Rename('newtest', 'newtest1');
   });
 }

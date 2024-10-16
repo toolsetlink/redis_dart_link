@@ -34,9 +34,7 @@ void main() {
       await client.connect();
 
       try {
-        final str = await client.ping();
-        print("ping");
-        print("str: $str");
+        await client.ping();
         // Info? redisInfo = await client.xInfo();
         // print('Redis version2: ${redisInfo?.server.redisVersion}');
       } catch (error, stackTrace) {

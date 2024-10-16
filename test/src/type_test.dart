@@ -15,7 +15,7 @@ void main() {
     // Connect to the Redis server.
     await client.connect();
 
-    String? value1 = await client.type(key: 'HD:MMS:PLAY:10009309:1:zh-cn:CN');
+    String? value1 = await client.type('HD:MMS:PLAY:10009309:1:zh-cn:CN');
     print(value1);
   });
 }

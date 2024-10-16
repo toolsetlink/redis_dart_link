@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import '../redis_dart_link.dart';
@@ -353,21 +352,26 @@ class RedisClient {
 
   ///  ------------------------------   Key  ------------------------------
 
-  Future<int> del(List<String> keys) async {
+  Future<int> Del(List<String> keys) async {
     return await _runWithRetryNew(() async {
-      return await RespCommandsTier2(_client!).del(keys);
+      return (await RespCommandsTier1(_client!).del(keys)).toInteger().payload;
     });
   }
 
-  Future<bool> expire({required String key, required Duration timeout}) async {
+  Future<bool> Expire(String key, Duration timeout) async {
     return await _runWithRetryNew(() async {
-      return await RespCommandsTier2(_client!).expire(key, timeout);
+      return (await RespCommandsTier1(_client!).expire(key, timeout))
+              .toInteger()
+              .payload ==
+          1;
     });
   }
 
-  Future<void> rename(String keyName, String newKeyName) async {
+  Future<void> Rename(String keyName, String newKeyName) async {
     return await _runWithRetryNew(() async {
-      return await RespCommandsTier2(_client!).rename(keyName, newKeyName);
+      (await RespCommandsTier1(_client!).rename(keyName, newKeyName))
+          .toSimpleString();
+      return null;
     });
   }
 
@@ -380,13 +384,15 @@ class RedisClient {
 
   Future<int> ttl(String key) async {
     return await _runWithRetryNew(() async {
-      return await RespCommandsTier2(_client!).ttl(key);
+      return (await RespCommandsTier1(_client!).ttl(key)).toInteger().payload;
     });
   }
 
-  Future<String?> type({required String key}) async {
+  Future<String> type(String key) async {
     return await _runWithRetryNew(() async {
-      return await RespCommandsTier2(_client!).type(key);
+      return (await RespCommandsTier1(_client!).type(key))
+          .toSimpleString()
+          .payload;
     });
   }
 
@@ -394,7 +400,9 @@ class RedisClient {
 
   Future<String?> get(String key) async {
     return await _runWithRetryNew(() async {
-      return await RespCommandsTier2(_client!).get(key);
+      return (await RespCommandsTier1(_client!).get(key))
+          .toBulkString()
+          .payload;
     });
   }
 
@@ -419,43 +427,58 @@ class RedisClient {
 
   Future<int> strlen(String key) async {
     return await _runWithRetryNew(() async {
-      return await RespCommandsTier2(_client!).strlen(key);
+      return (await RespCommandsTier1(_client!).strlen(key))
+          .toInteger()
+          .payload;
     });
   }
 
   ///  ------------------------------   Hash  ------------------------------
 
-  Future<int> hdel({required String key, required List<String> fields}) async {
+  Future<int> hdel(String key, List<String> fields) async {
     return await _runWithRetryNew(() async {
-      return await RespCommandsTier2(_client!).hdel(key, fields);
+      return (await RespCommandsTier1(_client!).hdel(key, fields))
+          .toInteger()
+          .payload;
     });
   }
 
   Future<int> hlen(String key) async {
     return await _runWithRetryNew(() async {
-      return await RespCommandsTier2(_client!).hlen(key);
+      return (await RespCommandsTier1(_client!).hlen(key)).toInteger().payload;
     });
   }
 
   Future<Map<String, String?>> hgetall(String key) async {
     return await _runWithRetryNew(() async {
-      return await RespCommandsTier2(_client!).hgetall(key);
+      final result =
+          (await RespCommandsTier1(_client!).hgetall(key)).toArray().payload;
+      final map = <String, String?>{};
+      if (result != null) {
+        for (var i = 0; i < result.length; i += 2) {
+          final key = result[i].toBulkString().payload;
+          final value = result[i + 1].toBulkString().payload;
+          if (key != null) {
+            map[key] = value;
+          }
+        }
+      }
+      return map;
     });
   }
 
-  Future<bool> hset(
-      {required String key,
-      required String field,
-      required Object value}) async {
+  Future<int> hset(String key, String field, Object value) async {
     return await _runWithRetryNew(() async {
-      return await RespCommandsTier2(_client!).hset(key, field, value);
+      return (await RespCommandsTier1(_client!).hset(key, field, value))
+          .toInteger()
+          .payload;
     });
   }
 
-  Future<void> hmset(
-      {required String key, required Map<Object, Object> values}) async {
+  Future<void> hmset(String key, Map<Object, Object> values) async {
     return await _runWithRetryNew(() async {
-      return await RespCommandsTier2(_client!).hmset(key, values);
+      (await RespCommandsTier1(_client!).hmset(key, values)).toSimpleString();
+      return null;
     });
   }
 
@@ -472,65 +495,90 @@ class RedisClient {
 
   Future<int> llen(String key) async {
     return await _runWithRetryNew(() async {
-      return await RespCommandsTier2(_client!).llen(key);
+      return (await RespCommandsTier1(_client!).llen(key)).toInteger().payload;
     });
   }
 
-  Future<int> lpush({required String key, required List<Object> values}) async {
+  Future<int> lpush(String key, List<Object> values) async {
     return await _runWithRetryNew(() async {
-      return await RespCommandsTier2(_client!).lpush(key, values);
+      return (await RespCommandsTier1(_client!).lpush(key, values))
+          .toInteger()
+          .payload;
     });
   }
 
   Future<List<String?>> lrange(String key, int start, int stop) async {
     return await _runWithRetryNew(() async {
-      return await RespCommandsTier2(_client!).lrange(key, start, stop);
+      final result =
+          (await RespCommandsTier1(_client!).lrange(key, start, stop))
+              .toArray()
+              .payload;
+      if (result != null) {
+        return result
+            .map((e) => e.toBulkString().payload)
+            .toList(growable: false);
+      }
+      return [];
     });
   }
 
-  Future<int> lrem(
-      {required String key, required int count, required Object value}) async {
+  Future<int> lrem(String key, int count, Object value) async {
     return await _runWithRetryNew(() async {
-      return await RespCommandsTier2(_client!).lrem(key, count, value);
+      return (await RespCommandsTier1(_client!).lrem(key, count, value))
+          .toInteger()
+          .payload;
     });
   }
 
-  Future<bool> lset(
-      {required String key, required int index, required Object value}) async {
+  Future<void> lset(String key, int index, Object value) async {
     return await _runWithRetryNew(() async {
-      return await RespCommandsTier2(_client!).lset(key, index, value);
+      (await RespCommandsTier1(_client!).lset(key, index, value));
+      return null;
     });
   }
 
-  Future<int> rpush({required String key, required List<Object> values}) async {
+  Future<int> rpush(String key, List<Object> values) async {
     return await _runWithRetryNew(() async {
-      return await RespCommandsTier2(_client!).rpush(key, values);
+      return (await RespCommandsTier1(_client!).rpush(key, values))
+          .toInteger()
+          .payload;
     });
   }
 
   ///  ------------------------------   Set  ------------------------------
 
-  Future<int> sadd({required String key, required List<Object> values}) async {
+  Future<int> sadd(String key, List<Object> values) async {
     return await _runWithRetryNew(() async {
-      return await RespCommandsTier2(_client!).sadd(key, values);
+      return (await RespCommandsTier1(_client!).sadd(key, values))
+          .toInteger()
+          .payload;
     });
   }
 
   Future<int> scard(String key) async {
     return await _runWithRetryNew(() async {
-      return await RespCommandsTier2(_client!).scard(key);
+      return (await RespCommandsTier1(_client!).scard(key)).toInteger().payload;
     });
   }
 
   Future<List<String?>> smembers(String key) async {
     return await _runWithRetryNew(() async {
-      return await RespCommandsTier2(_client!).smembers(key);
+      final result =
+          (await RespCommandsTier1(_client!).smembers(key)).toArray().payload;
+      if (result != null) {
+        return result
+            .map((e) => e.toBulkString().payload)
+            .toList(growable: false);
+      }
+      return [];
     });
   }
 
-  Future<int> srem({required String key, required List<Object> members}) async {
+  Future<int> srem(String key, List<Object> members) async {
     return await _runWithRetryNew(() async {
-      return await RespCommandsTier2(_client!).srem(key, members);
+      return (await RespCommandsTier1(_client!).srem(key, members))
+          .toInteger()
+          .payload;
     });
   }
 
@@ -548,25 +596,55 @@ class RedisClient {
   Future<int> zadd(
       {required String key, required Map<Object, double> values}) async {
     return await _runWithRetryNew(() async {
-      return await RespCommandsTier2(_client!).zadd(key, values);
+      return (await RespCommandsTier1(_client!).zadd(key, values))
+          .toInteger()
+          .payload;
     });
   }
 
   Future<int> zcard(String key) async {
     return await _runWithRetryNew(() async {
-      return await RespCommandsTier2(_client!).zcard(key);
+      return (await RespCommandsTier1(_client!).zcard(key)).toInteger().payload;
     });
   }
 
   Future<Map<String, double>> zrange(String key, int start, int stop) async {
     return await _runWithRetryNew(() async {
-      return await RespCommandsTier2(_client!).zrange(key, start, stop);
+      // 发送带有 WITHSCORES 选项的 ZRANGE 命令。
+      final result =
+          (await RespCommandsTier1(_client!).zrange(key, start, stop))
+              .toArray()
+              .payload;
+
+      if (result != null) {
+        // 创建一个 Map 来存储返回的结果。
+        final Map<String, double> memberScores = {};
+
+        // 由于 WITHSCORES 选项的存在，结果是一个数组，元素和分数交替出现。
+        // 即 [member1, score1, member2, score2, ...]。
+        // 因此我们需要每两步遍历一次数组。
+        for (int i = 0; i < result.length; i += 2) {
+          // 获取成员和对应的分数。
+          final member = result[i].toBulkString().payload;
+          final score = result[i + 1].toBulkString().payload;
+
+          // 将分数由 String 转换为 double，并将它们添加到 Map 中。
+          if (member != null && score != null) {
+            memberScores[member] = double.parse(score);
+          }
+        }
+
+        return memberScores;
+      }
+      return {};
     });
   }
 
   Future<int> zrem({required String key, required List<Object> members}) async {
     return await _runWithRetryNew(() async {
-      return await RespCommandsTier2(_client!).zrem(key, members);
+      return (await RespCommandsTier1(_client!).zrem(key, members))
+          .toInteger()
+          .payload;
     });
   }
 
@@ -587,16 +665,18 @@ class RedisClient {
 
   ///  ------------------------------   connection  ------------------------------
 
-  Future<String> ping() async {
+  Future<void> ping() async {
     return _runWithRetryNew(() async {
-      return await RespCommandsTier2(_client!).ping();
+      (await RespCommandsTier1(_client!).ping()).toSimpleString().payload;
+      return null;
     });
   }
 
   Future<void> select(int index) async {
     return await _runWithRetryNew(() async {
       _socketOptions.db = index;
-      return await RespCommandsTier2(_client!).select(index);
+      (await RespCommandsTier1(_client!).select(index)).toSimpleString();
+      return null;
     });
   }
 
@@ -624,13 +704,16 @@ class RedisClient {
 
   Future<int> slowlogLen() async {
     return await _runWithRetryNew(() async {
-      return await RespCommandsTier2(_client!).slowlogLen();
+      return (await RespCommandsTier1(_client!).slowlogLen())
+          .toInteger()
+          .payload;
     });
   }
 
   Future<void> slowlogReset() async {
     return await _runWithRetryNew(() async {
-      return await RespCommandsTier2(_client!).slowlogReset();
+      (await RespCommandsTier1(_client!).slowlogReset()).toSimpleString();
+      return null;
     });
   }
 
@@ -643,22 +726,28 @@ class RedisClient {
     bool nx = false,
     bool xx = false,
   }) async {
-    return await RespCommandsTier2(_client!).jsonSet(
+    (await RespCommandsTier1(_client!).jsonSet(
       key: key,
       path: path,
-      value: json.encode(value),
+      value: value,
       nx: nx,
       xx: xx,
-    );
+    ))
+        .toSimpleString();
+    return null;
   }
 
   Future<String?> jsonGet({required String key, String path = r'$'}) async {
-    return await RespCommandsTier2(_client!).jsonGet(key: key, path: path);
+    return (await RespCommandsTier1(_client!).jsonGet(key: key, path: path))
+        .toBulkString()
+        .payload;
   }
 
   Future<int> jsonDel({required String key, String path = r'$'}) async {
     return await _runWithRetryNew(() async {
-      return await RespCommandsTier2(_client!).jsonDel(key: key, path: path);
+      return (await RespCommandsTier1(_client!).jsonDel(key: key, path: path))
+          .toInteger()
+          .payload;
     });
   }
 

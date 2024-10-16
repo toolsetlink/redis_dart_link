@@ -16,7 +16,7 @@ void main() {
     // Connect to the Redis server.
     await client.connect();
 
-    await client.sadd(key: 'test-set', values: ["1", "2"]);
+    await client.sadd('test-set', ["1", "2"]);
 
     Sscan value1 = await client.sscan('test-set', 0);
     print(value1.keys);

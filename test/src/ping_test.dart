@@ -42,11 +42,8 @@ void main() {
       // print("sleep 12");
 
       try {
-        final str = await client.ping();
+        await client.ping();
         print("ping");
-        print("str: $str");
-        // Info? redisInfo = await client.xInfo();
-        // print('Redis version2: ${redisInfo?.server.redisVersion}');
       } catch (error, stackTrace) {
         print("ang error: $error");
         print("ang stackTrace: $stackTrace");

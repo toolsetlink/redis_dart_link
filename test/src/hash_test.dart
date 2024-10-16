@@ -16,9 +16,6 @@ void main() {
     // Connect to the Redis server.
     await client.connect();
 
-    final ping_str = await client.ping();
-    print("ping_str: $ping_str");
-
     Hscan value1 = await client.hscan('hash', 0);
     print(value1.keys);
   });
