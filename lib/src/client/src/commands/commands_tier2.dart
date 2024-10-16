@@ -558,6 +558,19 @@ class RespCommandsTier2 {
     return (await tier1.jsonDel(key: key, path: path)).toInteger().payload;
   }
 
+  Future<List<String>> jsonMget(
+      {required List<String> key, String path = r'$'}) async {
+    final bulkString =
+        (await tier1.jsonMget(key: key, path: path)).toBulkString().payload;
+    if (bulkString != null) {
+      return bulkString
+          .split('\n')
+          .where((e) => e.isNotEmpty)
+          .toList(growable: false);
+    }
+    return [];
+  }
+
   //////////////////////////////////////////////////////////////////////////////////
 
   Future<int> exists(List<String> keys) async {

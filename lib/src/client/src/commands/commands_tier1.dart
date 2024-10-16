@@ -353,6 +353,11 @@ class RespCommandsTier1 {
     return tier0.execute(['JSON.DEL', '$key', '$path']);
   }
 
+  Future<RespType> jsonMget(
+      {required List<String> key, String path = r'$'}) async {
+    return tier0.execute(['JSON.MGET', ...key, '$path']);
+  }
+
   /////////////////////////////////////////////////////////////////////////
 
   Future<RespType> clientList(
