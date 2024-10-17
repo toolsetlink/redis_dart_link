@@ -3,18 +3,15 @@ Redis client for Dart
 
 [Redis](http://redis.io/) protocol parser and client for [Dart](https://www.dartlang.org)
 
+## Changes
 
-## References
-* [resp_client](https://pub.dev/packages/resp_client)
-* [redis-dart](https://github.com/ra1u/redis-dart)
-
+[CHANGELOG.md](CHANGELOG.md)
 
 Example:
 ## Example:
 
 ```
 import 'package:redis_dart_link/redis_dart_link.dart';
-
 
 RedisClient client = RedisClient(
     socket: RedisSocketOptions(
@@ -28,10 +25,8 @@ RedisClient client = RedisClient(
 await client.connect();
 
 try {
-    final str = await client.ping();
+    await client.ping();
     print("ping");
-    print("str: $str");
-
 } catch (error, stackTrace) {
     print("error: $error");
     print("stackTrace: $stackTrace");
@@ -41,7 +36,7 @@ try {
 
 See more examples in the test folder
 
-## Changes
-
-[CHANGELOG.md](CHANGELOG.md)
+## References
+* [resp_client](https://pub.dev/packages/resp_client)
+* [redis-dart](https://github.com/ra1u/redis-dart)
 
