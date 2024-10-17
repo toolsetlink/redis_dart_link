@@ -35,7 +35,7 @@ void main() {
       await client.connect();
 
       Info? redisInfo = await client.info();
-      print('Redis version1: ${redisInfo?.server.redisVersion}');
+      print('Redis version1: ${redisInfo.server.redisVersion}');
 
       // 睡眠  秒
       // await Future.delayed(Duration(seconds: 12));
