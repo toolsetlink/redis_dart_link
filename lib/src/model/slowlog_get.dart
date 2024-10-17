@@ -1,4 +1,4 @@
-import '../client/commands.dart';
+import '../client/client.dart';
 
 class SlowlogGet {
   final List<SlowlogGetInfo> list;
@@ -7,20 +7,52 @@ class SlowlogGet {
     required this.list,
   });
 
-  factory SlowlogGet.fromResult(SlowlogGetResult result) {
-    List<SlowlogGetInfo> infoList = [];
-    for (var line in result.list) {
-      infoList.add(SlowlogGetInfo(
-        id: line.id,
-        timestamp: line.timestamp,
-        duration: line.duration,
-        command: line.command,
-        client: line.client,
-        extraInfo: line.extraInfo,
-      ));
+  factory SlowlogGet.fromResult(List<RespType<dynamic>>? result) {
+    List<SlowlogGetInfo> _list = [];
+
+    if (result != null) {
+      for (var item in result) {
+        if (item is RespArray) {
+          final payload = item.payload;
+
+          if (payload != null && payload.length == 6) {
+            // 提取 id、timestamp 和 duration
+            final id = (payload[0] as RespInteger).payload;
+            final timestamp = (payload[1] as RespInteger).payload;
+            final duration = (payload[2] as RespInteger).payload;
+
+            // // 提取 command，command 是一个数组
+            final commandArray = (payload[3] as RespArray).payload;
+            List<String>? command = [];
+            if (commandArray != null) {
+              command = commandArray.map((cmd) {
+                return (cmd as RespBulkString).payload ?? '';
+              }).toList(); // 将命令部分转换为 List<String>
+            }
+
+            // 提取 client
+            String? client = (payload[4] as RespBulkString).payload;
+
+            // extraInfo 可以根据需要进行处理，这里假设总是存在且为字符串
+            String? extraInfo =
+                (payload.length > 5 && payload[5] is RespBulkString)
+                    ? (payload[5] as RespBulkString).payload
+                    : '';
+
+            _list.add(SlowlogGetInfo(
+              id: id,
+              timestamp: timestamp,
+              duration: duration,
+              command: command,
+              client: client,
+              extraInfo: extraInfo,
+            ));
+          }
+        }
+      }
     }
 
-    return SlowlogGet(list: infoList);
+    return SlowlogGet(list: _list);
   }
 
   @override

@@ -1,4 +1,5 @@
 import 'package:redis_dart_link/redis_dart_link.dart';
+import 'package:redis_dart_link/src/model/scan.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -15,9 +16,9 @@ void main() {
     // Connect to the Redis server.
     await client.connect();
 
-    // ScanResult scanResult = await client.scan(0, count: 10000);
-    // print('1 cursor: ${scanResult.cursor}');
-    // print('1 keys.len: ${scanResult.keys.length}');
+    Scan scanResult = await client.scan(0, count: 10000);
+    print('1 cursor: ${scanResult.cursor}');
+    print('1 keys.len: ${scanResult.keys.length}');
     //
     // scanResult = await client.scan(scanResult.cursor, count: 10000);
     // print('2 cursor: ${scanResult.cursor}');

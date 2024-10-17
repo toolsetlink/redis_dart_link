@@ -1,4 +1,4 @@
-import '../client/commands.dart';
+import '../client/client.dart';
 
 class Zscan {
   final int cursor; // 游标
@@ -9,16 +9,32 @@ class Zscan {
     required this.keys,
   });
 
-  factory Zscan.fromResult(ZscanResult result) {
-    // 转换 _keys 中的 String 值为 double
-    Map<String, double> convertedKeys = {};
-    result.keys.forEach((key, value) {
-      convertedKeys[key] = double.parse(value); // 将 String 转换为 double
-    });
+  factory Zscan.fromResult(List<RespType<dynamic>>? result) {
+    var _cursor = 0;
+    var _keys = <String, double>{};
 
-    return Zscan(
-      cursor: result.cursor,
-      keys: convertedKeys,
-    );
+    if (result != null && result.length == 2) {
+      final element1 = result[0] as RespBulkString;
+      final payload1 = element1.payload;
+      if (payload1 != null) {
+        _cursor = int.parse(payload1);
+      }
+
+      final element2 = result[1] as RespArray;
+      final payload2 = element2.payload;
+
+      if (payload2 != null) {
+        // 将原来处理列表的逻辑改为处理映射
+        for (var i = 0; i < payload2.length; i += 2) {
+          var keyItem = payload2[i] as RespBulkString;
+          var valueItem = payload2[i + 1] as RespBulkString;
+          if (keyItem.payload != null && valueItem.payload != null) {
+            _keys[keyItem.payload!] = double.parse(valueItem.payload!);
+          }
+        }
+      }
+    }
+
+    return Zscan(cursor: _cursor, keys: _keys);
   }
 }

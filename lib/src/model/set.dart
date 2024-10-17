@@ -1,4 +1,4 @@
-import '../client/commands.dart';
+import 'package:redis_dart_link/src/client/client.dart';
 
 class Set {
   final bool ok; // 是否成功
@@ -9,10 +9,11 @@ class Set {
     required this.oldVal,
   });
 
-  factory Set.fromResult(SetResult result) {
-    return Set(
-      ok: result.ok,
-      oldVal: result.old,
+  factory Set.fromResult(RespType<dynamic> result) {
+    return result.handleAs<Set>(
+      simple: (_) => Set(ok: true, oldVal: null),
+      bulk: (type) => Set(ok: type.payload != null, oldVal: type.payload),
+      error: (_) => Set(ok: false, oldVal: null),
     );
   }
 

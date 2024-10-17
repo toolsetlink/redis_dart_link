@@ -376,9 +376,13 @@ class RedisClient {
   }
 
   Future<Scan> scan(int cursor, {String? pattern, int? count}) async {
-    ScanResult result = await _runWithRetryNew(() async {
-      return await RespCommandsTier2(_client!).scan(cursor, count: count);
+    List<RespType<dynamic>>? result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!)
+              .scan(cursor, pattern: pattern, count: count))
+          .toArray()
+          .payload;
     });
+
     return Scan.fromResult(result);
   }
 
@@ -417,9 +421,18 @@ class RedisClient {
     bool xx = false,
     bool get = false,
   }) async {
-    SetResult result = await _runWithRetryNew(() async {
-      return await RespCommandsTier2(_client!).set(key, value,
-          ex: ex, exat: exat, px: px, pxat: pxat, nx: nx, xx: xx, get: get);
+    RespType<dynamic> result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).set(
+        key,
+        value,
+        ex: ex,
+        exat: exat,
+        px: px,
+        pxat: pxat,
+        nx: nx,
+        xx: xx,
+        get: get,
+      ));
     });
 
     return Set.fromResult(result);
@@ -484,8 +497,11 @@ class RedisClient {
 
   Future<Hscan> hscan(String key, int cursor,
       {String? pattern, int? count}) async {
-    HscanResult result = await _runWithRetryNew(() async {
-      return await RespCommandsTier2(_client!).hscan(key, cursor, count: count);
+    List<RespType<dynamic>>? result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!)
+              .hscan(key, cursor, pattern: pattern, count: count))
+          .toArray()
+          .payload;
     });
 
     return Hscan.fromResult(result);
@@ -584,8 +600,11 @@ class RedisClient {
 
   Future<Sscan> sscan(String key, int cursor,
       {String? pattern, int? count}) async {
-    SscanResult result = await _runWithRetryNew(() async {
-      return await RespCommandsTier2(_client!).sscan(key, cursor, count: count);
+    List<RespType<dynamic>>? result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!)
+              .sscan(key, cursor, pattern: pattern, count: count))
+          .toArray()
+          .payload;
     });
 
     return Sscan.fromResult(result);
@@ -593,8 +612,7 @@ class RedisClient {
 
   ///  ------------------------------   SortedSet  ------------------------------
 
-  Future<int> zadd(
-      {required String key, required Map<Object, double> values}) async {
+  Future<int> zadd(String key, Map<Object, double> values) async {
     return await _runWithRetryNew(() async {
       return (await RespCommandsTier1(_client!).zadd(key, values))
           .toInteger()
@@ -610,7 +628,6 @@ class RedisClient {
 
   Future<Map<String, double>> zrange(String key, int start, int stop) async {
     return await _runWithRetryNew(() async {
-      // 发送带有 WITHSCORES 选项的 ZRANGE 命令。
       final result =
           (await RespCommandsTier1(_client!).zrange(key, start, stop))
               .toArray()
@@ -640,7 +657,7 @@ class RedisClient {
     });
   }
 
-  Future<int> zrem({required String key, required List<Object> members}) async {
+  Future<int> zrem(String key, List<Object> members) async {
     return await _runWithRetryNew(() async {
       return (await RespCommandsTier1(_client!).zrem(key, members))
           .toInteger()
@@ -650,8 +667,11 @@ class RedisClient {
 
   Future<Zscan> zscan(String key, int cursor,
       {String? pattern, int? count}) async {
-    ZscanResult result = await _runWithRetryNew(() async {
-      return await RespCommandsTier2(_client!).zscan(key, cursor, count: count);
+    List<RespType<dynamic>>? result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!)
+              .zscan(key, cursor, pattern: pattern, count: count))
+          .toArray()
+          .payload;
     });
 
     return Zscan.fromResult(result);
@@ -684,19 +704,25 @@ class RedisClient {
 
   Future<Info> info([String? section]) async {
     List<String> result = await _runWithRetryNew(() async {
-      return await RespCommandsTier2(_client!).info(section);
+      final bulkString = (await RespCommandsTier1(_client!).info(section))
+          .toBulkString()
+          .payload;
+      if (bulkString != null) {
+        return bulkString
+            .split('\n')
+            .where((e) => e.isNotEmpty)
+            .toList(growable: false);
+      }
+      return [];
     });
-
     return Info.fromResult(result);
   }
 
   Future<SlowlogGet> slowlogGet({int? count}) async {
-    SlowlogGetResult result = await _runWithRetryNew(() async {
-      if (count == null) {
-        return await RespCommandsTier2(_client!).slowlogGet();
-      } else {
-        return await RespCommandsTier2(_client!).slowlogGet(count: count);
-      }
+    List<RespType<dynamic>>? result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).slowlogGet(count))
+          .toArray()
+          .payload;
     });
 
     return SlowlogGet.fromResult(result);
@@ -726,24 +752,19 @@ class RedisClient {
     bool nx = false,
     bool xx = false,
   }) async {
-    (await RespCommandsTier1(_client!).jsonSet(
-      key: key,
-      path: path,
-      value: value,
-      nx: nx,
-      xx: xx,
-    ))
+    (await RespCommandsTier1(_client!)
+            .jsonSet(key: key, path: path, value: value, nx: nx, xx: xx))
         .toSimpleString();
     return null;
   }
 
-  Future<String?> jsonGet({required String key, String path = r'$'}) async {
+  Future<String?> jsonGet(String key, {String path = r'$'}) async {
     return (await RespCommandsTier1(_client!).jsonGet(key: key, path: path))
         .toBulkString()
         .payload;
   }
 
-  Future<int> jsonDel({required String key, String path = r'$'}) async {
+  Future<int> jsonDel(String key, {String path = r'$'}) async {
     return await _runWithRetryNew(() async {
       return (await RespCommandsTier1(_client!).jsonDel(key: key, path: path))
           .toInteger()
@@ -770,4 +791,35 @@ final class _NoopRedisLogger implements RedisLogger {
 
   @override
   void error(String message, {Object? error, StackTrace? stackTrace}) {}
+}
+
+class ScanResult {
+  int _cursor = 0;
+  List<String> _keys = [];
+
+  ScanResult._(List<RespType>? result) {
+    if (result != null && result.length == 2) {
+      final element1 = result[0] as RespBulkString;
+      final payload1 = element1.payload;
+      if (payload1 != null) {
+        _cursor = int.parse(payload1);
+      }
+
+      final element2 = result[1] as RespArray;
+      final payload2 = element2.payload;
+      if (payload2 != null) {
+        _keys = payload2
+            .cast<RespBulkString>()
+            .map((e) => e.payload!)
+            .toList(growable: false);
+      }
+    }
+  }
+
+  int get cursor => _cursor;
+
+  List<String> get keys => _keys;
+
+  @override
+  String toString() => 'ScanResult(cursor: $cursor, keys: $keys)';
 }

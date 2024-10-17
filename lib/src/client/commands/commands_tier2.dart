@@ -1,119 +1,5 @@
 part of commands;
 
-class SetResult {
-  ///
-  /// [true] if the value was set.
-  /// [true]如果设置了该值。
-  ///
-  final bool ok;
-
-  ///
-  /// The old value of the key before the operation.
-  /// 操作前的旧键值。
-  ///
-  final String? old;
-  SetResult._(this.ok, this.old);
-
-  @override
-  String toString() => 'SetResult(ok: $ok, old: $old)';
-}
-
-class ScanResult {
-  int _cursor = 0;
-  List<String> _keys = [];
-
-  ScanResult._(List<RespType>? result) {
-    if (result != null && result.length == 2) {
-      final element1 = result[0] as RespBulkString;
-      final payload1 = element1.payload;
-      if (payload1 != null) {
-        _cursor = int.parse(payload1);
-      }
-
-      final element2 = result[1] as RespArray;
-      final payload2 = element2.payload;
-      if (payload2 != null) {
-        _keys = payload2
-            .cast<RespBulkString>()
-            .map((e) => e.payload!)
-            .toList(growable: false);
-      }
-    }
-  }
-
-  int get cursor => _cursor;
-
-  List<String> get keys => _keys;
-
-  @override
-  String toString() => 'ScanResult(cursor: $cursor, keys: $keys)';
-}
-
-class HscanResult {
-  int _cursor = 0;
-  Map<String, String> _keys = {};
-
-  HscanResult._(List<RespType>? result) {
-    if (result != null && result.length == 2) {
-      final element1 = result[0] as RespBulkString;
-      final payload1 = element1.payload;
-      if (payload1 != null) {
-        _cursor = int.parse(payload1);
-      }
-      final element2 = result[1] as RespArray;
-      final payload2 = element2.payload;
-      if (payload2 != null) {
-        // 将原来处理列表的逻辑改为处理映射
-        for (var i = 0; i < payload2.length; i += 2) {
-          var keyItem = payload2[i] as RespBulkString;
-          var valueItem = payload2[i + 1] as RespBulkString;
-          if (keyItem.payload != null && valueItem.payload != null) {
-            _keys[keyItem.payload!] = valueItem.payload!;
-          }
-        }
-      }
-    }
-  }
-
-  int get cursor => _cursor;
-
-  Map<String, String> get keys => _keys;
-
-  @override
-  String toString() => 'HscanResult(cursor: $_cursor, keys: $_keys)';
-}
-
-class SscanResult {
-  int _cursor = 0;
-  List<String> _keys = [];
-
-  SscanResult._(List<RespType>? result) {
-    if (result != null && result.length == 2) {
-      final element1 = result[0] as RespBulkString;
-      final payload1 = element1.payload;
-      if (payload1 != null) {
-        _cursor = int.parse(payload1);
-      }
-
-      final element2 = result[1] as RespArray;
-      final payload2 = element2.payload;
-      if (payload2 != null) {
-        _keys = payload2
-            .cast<RespBulkString>()
-            .map((e) => e.payload!)
-            .toList(growable: false);
-      }
-    }
-  }
-
-  int get cursor => _cursor;
-
-  List<String> get keys => _keys;
-
-  @override
-  String toString() => 'SscanResult(cursor: $cursor, keys: $keys)';
-}
-
 class ZscanResult {
   int _cursor = 0;
   Map<String, String> _keys = {};
@@ -251,76 +137,28 @@ class RespCommandsTier2 {
 
   ///  ------------------------------   Key  ------------------------------
 
-  Future<ScanResult> scan(int cursor, {String? pattern, int? count}) async {
-    final result = (await tier1.scan(cursor, pattern: pattern, count: count))
-        .toArray()
-        .payload;
-    return ScanResult._(result);
-  }
-
   ///  ------------------------------   String  ------------------------------
-
-  Future<SetResult> set(
-    Object key,
-    Object value, {
-    Duration? ex,
-    DateTime? exat,
-    Duration? px,
-    DateTime? pxat,
-    bool nx = false,
-    bool xx = false,
-    bool get = false,
-  }) async {
-    final result = (await tier1.set(
-      key,
-      value,
-      ex: ex,
-      exat: exat,
-      px: px,
-      pxat: pxat,
-      nx: nx,
-      xx: xx,
-      get: get,
-    ));
-
-    return result.handleAs<SetResult>(
-      simple: (_) => SetResult._(true, null),
-      bulk: (type) => SetResult._(type.payload != null, type.payload),
-      error: (_) => SetResult._(false, null),
-    );
-  }
 
   ///  ------------------------------   Hash  ------------------------------
 
-  Future<HscanResult> hscan(String key, int cursor,
-      {String? pattern, int? count}) async {
-    final result =
-        (await tier1.hscan(key, cursor, pattern: pattern, count: count))
-            .toArray()
-            .payload;
-    return HscanResult._(result);
-  }
+  // Future<HscanResult> hscan(String key, int cursor,
+  //     {String? pattern, int? count}) async {
+  //   final result =
+  //       (await tier1.hscan(key, cursor, pattern: pattern, count: count))
+  //           .toArray()
+  //           .payload;
+  //   return HscanResult._(result);
+  // }
 
   ///  ------------------------------   List  ------------------------------
 
   ///  ------------------------------   Set  ------------------------------
 
-  Future<SscanResult> sscan(String key, int cursor,
-      {String? pattern, int? count}) async {
-    final result =
-        (await tier1.sscan(key, cursor, pattern: pattern, count: count))
-            .toArray()
-            .payload;
-    return SscanResult._(result);
-  }
-
   ///  ------------------------------   SortedSet  ------------------------------
 
   Future<Map<String, double>> zrange(String key, int start, int stop) async {
-    // 发送带有 WITHSCORES 选项的 ZRANGE 命令。
     final result = (await tier1.zrange(key, start, stop)).toArray().payload;
     if (result != null) {
-      // 创建一个 Map 来存储返回的结果。
       final Map<String, double> memberScores = {};
 
       // 由于 WITHSCORES 选项的存在，结果是一个数组，元素和分数交替出现。
@@ -366,27 +204,27 @@ class RespCommandsTier2 {
 
   ///  ------------------------------   server  ------------------------------
 
-  Future<List<String>> info([String? section]) async {
-    final bulkString = (await tier1.info(section)).toBulkString().payload;
+  // Future<List<String>> info([String? section]) async {
+  //   final bulkString = (await tier1.info(section)).toBulkString().payload;
+  //
+  //   if (bulkString != null) {
+  //     return bulkString
+  //         .split('\n')
+  //         .where((e) => e.isNotEmpty)
+  //         .toList(growable: false);
+  //   }
+  //   return [];
+  // }
 
-    if (bulkString != null) {
-      return bulkString
-          .split('\n')
-          .where((e) => e.isNotEmpty)
-          .toList(growable: false);
-    }
-    return [];
-  }
-
-  Future<SlowlogGetResult> slowlogGet({int? count}) async {
-    if (count == null) {
-      final result = (await tier1.slowlogGet()).toArray().payload;
-      return SlowlogGetResult._(result);
-    } else {
-      final result = (await tier1.slowlogGet(count)).toArray().payload;
-      return SlowlogGetResult._(result);
-    }
-  }
+  // Future<SlowlogGetResult> slowlogGet({int? count}) async {
+  //   if (count == null) {
+  //     final result = (await tier1.slowlogGet()).toArray().payload;
+  //     return SlowlogGetResult._(result);
+  //   } else {
+  //     final result = (await tier1.slowlogGet(count)).toArray().payload;
+  //     return SlowlogGetResult._(result);
+  //   }
+  // }
 
   ///  ------------------------------   json  ------------------------------
 

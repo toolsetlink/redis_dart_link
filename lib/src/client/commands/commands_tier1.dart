@@ -301,14 +301,14 @@ class RespCommandsTier1 {
 
   ///  ------------------------------   server  ------------------------------
 
-  Future<RespType> info([String? section]) async {
+  Future<RespType> info(String? section) async {
     return tier0.execute([
       'INFO',
       if (section != null) section,
     ]);
   }
 
-  Future<RespType> slowlogGet([int? count]) async {
+  Future<RespType> slowlogGet(int? count) async {
     return tier0.execute([
       'SLOWLOG',
       'GET',

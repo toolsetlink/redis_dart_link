@@ -15,7 +15,7 @@ void main() {
     // Connect to the Redis server.
     await client.connect();
 
-    var Val = await client.jsonGet(key: 'user:1000');
+    var Val = await client.jsonGet('user:1000');
     print("Val.toString() : ${Val}");
   });
 }

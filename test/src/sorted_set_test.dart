@@ -16,7 +16,7 @@ void main() {
     // Connect to the Redis server.
     await client.connect();
 
-    await client.zadd(key: 'test-zset', values: {"key1": 1, 'key2': 2});
+    await client.zadd('test-zset', {"key1": 1, 'key2': 2});
 
     Zscan value1 = await client.zscan('test-zset', 0);
     print(value1.keys);

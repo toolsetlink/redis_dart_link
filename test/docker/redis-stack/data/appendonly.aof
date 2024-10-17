@@ -26,3 +26,12 @@ $6
 string
 $6
 string
+*4
+$4
+SADD
+$8
+test-set
+$1
+1
+$1
+2
