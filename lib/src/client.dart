@@ -352,13 +352,13 @@ class RedisClient {
 
   ///  ------------------------------   Key  ------------------------------
 
-  Future<int> Del(List<String> keys) async {
+  Future<int> del(List<String> keys) async {
     return await _runWithRetryNew(() async {
       return (await RespCommandsTier1(_client!).del(keys)).toInteger().payload;
     });
   }
 
-  Future<bool> Expire(String key, Duration timeout) async {
+  Future<bool> expire(String key, Duration timeout) async {
     return await _runWithRetryNew(() async {
       return (await RespCommandsTier1(_client!).expire(key, timeout))
               .toInteger()
@@ -367,7 +367,7 @@ class RedisClient {
     });
   }
 
-  Future<void> Rename(String keyName, String newKeyName) async {
+  Future<void> rename(String keyName, String newKeyName) async {
     return await _runWithRetryNew(() async {
       (await RespCommandsTier1(_client!).rename(keyName, newKeyName))
           .toSimpleString();
