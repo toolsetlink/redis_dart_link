@@ -286,6 +286,19 @@ class RespCommandsTier1 {
   ///  ------------------------------   HyperLogLog  ------------------------------
   ///  ------------------------------   Geo  ------------------------------
   ///  ------------------------------   PubSub  ------------------------------
+
+  Stream<RespType> subscribe(List<String> channels) {
+    return tier0.subscribe(channels);
+  }
+
+  Future<RespType> publish(String channel, Object message) async {
+    return tier0.execute(['PUBLISH', channel, message]);
+  }
+
+  Future<RespType> unsubscribe(Iterable<String> channels) async {
+    return tier0.execute(['UNSUBSCRIBE', ...channels]);
+  }
+
   ///  ------------------------------   transactions  ------------------------------
   ///  ------------------------------   scripting  ------------------------------
 
@@ -517,18 +530,6 @@ class RespCommandsTier1 {
   /// 有序集合(sorted set) End
 
   /// 订阅 Start
-
-  Future<RespType> publish(String channel, Object message) async {
-    return tier0.execute(['PUBLISH', channel, message]);
-  }
-
-  Future<RespType> subscribe(List<String> channels) async {
-    return tier0.execute(['SUBSCRIBE', ...channels]);
-  }
-
-  Future<RespType> unsubscribe(Iterable<String> channels) async {
-    return tier0.execute(['UNSUBSCRIBE', ...channels]);
-  }
 
   /// 订阅 End
 

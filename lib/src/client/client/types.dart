@@ -188,6 +188,11 @@ class RespInteger extends RespType<int> {
   RespInteger toInteger() => this;
 
   @override
+  List<int> serialize() {
+    return utf8.encode('$prefix${payload}$suffix'); // 这里也要添加 CRLF
+  }
+
+  @override
   bool get isInteger => true;
 
   @override
@@ -245,23 +250,32 @@ class RespError extends RespType<String> {
 
 Future<RespType> deserializeRespType(StreamReader streamReader) async {
   final typePrefix = await streamReader.takeOne();
+
   switch (typePrefix) {
     case 0x2b: // simple string
+
       final payload =
           utf8.decode(await streamReader.takeWhile((data) => data != 0x0d));
       await streamReader.takeCount(2);
+
       return RespSimpleString(payload);
     case 0x2d: // error
+
       final payload =
           utf8.decode(await streamReader.takeWhile((data) => data != 0x0d));
       await streamReader.takeCount(2);
+
       return RespError(payload);
     case 0x3a: // integer
+
       final payload = int.parse(
           utf8.decode(await streamReader.takeWhile((data) => data != 0x0d)));
       await streamReader.takeCount(2);
+
       return RespInteger(payload);
+
     case 0x24: // bulk string
+
       final length = int.parse(
           utf8.decode(await streamReader.takeWhile((data) => data != 0x0d)));
       await streamReader.takeCount(2);
@@ -270,8 +284,10 @@ Future<RespType> deserializeRespType(StreamReader streamReader) async {
       }
       final payload = utf8.decode(await streamReader.takeCount(length));
       await streamReader.takeCount(2);
+
       return RespBulkString(payload);
     case 0x2a: // array
+
       final count = int.parse(
           utf8.decode(await streamReader.takeWhile((data) => data != 0x0d)));
       await streamReader.takeCount(2);
@@ -282,6 +298,7 @@ Future<RespType> deserializeRespType(StreamReader streamReader) async {
       for (var i = 0; i < count; i++) {
         elements.add(await deserializeRespType(streamReader));
       }
+
       return RespArray(elements);
     default:
       throw StateError('unexpected character: $typePrefix');

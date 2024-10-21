@@ -106,7 +106,7 @@ class RedisClient {
       _isConnected = true;
 
       // 进行数据库选择
-      await RespCommandsTier2(_client!).select(_socketOptions.db);
+      await RespCommandsTier1(_client!).select(_socketOptions.db);
 
       if (!_connected.isCompleted) _connected.complete();
 
@@ -680,6 +680,26 @@ class RedisClient {
   ///  ------------------------------   HyperLogLog  ------------------------------
   ///  ------------------------------   Geo  ------------------------------
   ///  ------------------------------   PubSub  ------------------------------
+  Stream<Map<String, String?>> subscribe(List<String> channels) {
+    Stream<RespType> stream = (RespCommandsTier1(_client!).subscribe(channels));
+
+    return stream.map((resp) {
+      final array = resp.toArray().payload;
+
+      if (array != null) {
+        final type = array[0].toBulkString().payload;
+        final channel = array[1].toBulkString().payload;
+        final message = array[2].toBulkString().payload;
+        return {
+          'type': type,
+          'channel': channel,
+          'message': message,
+        };
+      }
+      return {};
+    });
+  }
+
   ///  ------------------------------   transactions  ------------------------------
   ///  ------------------------------   scripting  ------------------------------
 
@@ -791,35 +811,4 @@ final class _NoopRedisLogger implements RedisLogger {
 
   @override
   void error(String message, {Object? error, StackTrace? stackTrace}) {}
-}
-
-class ScanResult {
-  int _cursor = 0;
-  List<String> _keys = [];
-
-  ScanResult._(List<RespType>? result) {
-    if (result != null && result.length == 2) {
-      final element1 = result[0] as RespBulkString;
-      final payload1 = element1.payload;
-      if (payload1 != null) {
-        _cursor = int.parse(payload1);
-      }
-
-      final element2 = result[1] as RespArray;
-      final payload2 = element2.payload;
-      if (payload2 != null) {
-        _keys = payload2
-            .cast<RespBulkString>()
-            .map((e) => e.payload!)
-            .toList(growable: false);
-      }
-    }
-  }
-
-  int get cursor => _cursor;
-
-  List<String> get keys => _keys;
-
-  @override
-  String toString() => 'ScanResult(cursor: $cursor, keys: $keys)';
 }

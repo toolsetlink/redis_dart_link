@@ -35,3 +35,15 @@ $1
 1
 $1
 2
+*2
+$6
+SELECT
+$1
+0
+*3
+$5
+PFADD
+$9
+runoobkey
+$5
+redis

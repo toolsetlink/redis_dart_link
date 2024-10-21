@@ -31,14 +31,7 @@ class RespClient {
     return completer.future;
   }
 
-  Stream<RespType> subscribe() {
-    final controller = StreamController<RespType>();
-    deserializeRespType(_streamReader).then((response) {
-      controller.add(response);
-    });
-    return controller.stream;
-  }
-
+  /// 返回值
   void _processResponse(bool selfCall) {
     if (_isProccessingResponse == false || selfCall) {
       if (_pendingResponses.isNotEmpty) {
@@ -51,6 +44,68 @@ class RespClient {
       } else {
         _isProccessingResponse = false;
       }
+    }
+  }
+
+  // 监听
+  Stream<RespType> subscribe(List<String> channels) {
+    final controller = StreamController<RespType>();
+
+    // 构建 SUBSCRIBE 命令
+    final subscribeCommand = RespArray([
+      RespBulkString('SUBSCRIBE'),
+      ...channels.map((channel) => RespBulkString(channel)).toList(),
+    ]);
+
+    // 发送 SUBSCRIBE 命令
+    _connection.outputSink.add(subscribeCommand.serialize());
+
+    // 启动监听消息的异步方法
+    _listenForMessages(controller);
+
+    // 关闭时清理
+    controller.onCancel = () {
+      // 发送 UNSUBSCRIBE 命令以取消订阅
+      final unsubscribeCommand = RespArray([
+        RespBulkString('UNSUBSCRIBE'),
+        ...channels.map((channel) => RespBulkString(channel)).toList(),
+      ]);
+      _connection.outputSink.add(unsubscribeCommand.serialize());
+      controller.close();
+    };
+
+    return controller.stream;
+  }
+
+  // 定义一个异步方法来监听消息
+  Future<void> _listenForMessages(StreamController<RespType> controller) async {
+    while (true) {
+      try {
+        // 尝试读取数据
+        RespType<dynamic> response = await deserializeRespType(_streamReader);
+
+        if (response is RespArray) {
+          List<RespType>? array = response.toArray().payload;
+
+          if (array!.isNotEmpty) {
+            final type = array[0].toBulkString().payload;
+            if (type == 'subscribe') {
+              print("订阅成功信息");
+            } else if (type == 'message') {
+              controller.add(response);
+            }
+          }
+        }
+      } catch (e, stackTrace) {
+        print("resp clint try e: $e");
+        print("resp clint try StackTrace: $stackTrace");
+        // 处理反序列化错误
+        controller.addError(e);
+        break; // 退出循环
+      }
+
+      // 添加延迟以调长监听时间（例如，延迟 1 秒）
+      await Future.delayed(Duration(seconds: 1));
     }
   }
 }
