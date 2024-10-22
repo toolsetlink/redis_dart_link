@@ -35,8 +35,8 @@ void main() {
 
       try {
         await client.ping();
-        // Info? redisInfo = await client.xInfo();
-        // print('Redis version2: ${redisInfo?.server.redisVersion}');
+
+        await client.auth("12345");
       } catch (error, stackTrace) {
         print("ang error: $error");
         print("ang stackTrace: $stackTrace");

@@ -6,6 +6,7 @@ import './model/info.dart';
 import 'client/client.dart';
 import 'client/commands.dart';
 import 'client/server.dart';
+import 'model/client_list.dart';
 import 'model/hscan.dart';
 import 'model/psubscribe.dart';
 import 'model/scan.dart';
@@ -360,6 +361,23 @@ class RedisClient {
     });
   }
 
+  Future<int> exists(List<String> keys) async {
+    return await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).exists(keys))
+          .toInteger()
+          .payload;
+    });
+  }
+
+  Future<bool> pexpire(String key, Duration timeout) async {
+    return await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).pexpire(key, timeout))
+              .toInteger()
+              .payload ==
+          1;
+    });
+  }
+
   Future<bool> expire(String key, Duration timeout) async {
     return await _runWithRetryNew(() async {
       return (await RespCommandsTier1(_client!).expire(key, timeout))
@@ -404,10 +422,38 @@ class RedisClient {
 
   ///  ------------------------------   String  ------------------------------
 
+  Future<int> decr(String key) async {
+    return await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).decr(key)).toInteger().payload;
+    });
+  }
+
+  Future<int> decrby(String key, int increment) async {
+    return await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).decrby(key, increment))
+          .toInteger()
+          .payload;
+    });
+  }
+
   Future<String?> get(String key) async {
     return await _runWithRetryNew(() async {
       return (await RespCommandsTier1(_client!).get(key))
           .toBulkString()
+          .payload;
+    });
+  }
+
+  Future<int> incr(String key) async {
+    return await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).incr(key)).toInteger().payload;
+    });
+  }
+
+  Future<int> incrby(String key, int increment) async {
+    return await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).incrby(key, increment))
+          .toInteger()
           .payload;
     });
   }
@@ -458,9 +504,20 @@ class RedisClient {
     });
   }
 
-  Future<int> hlen(String key) async {
+  Future<bool> hexists(String key, String field) async {
     return await _runWithRetryNew(() async {
-      return (await RespCommandsTier1(_client!).hlen(key)).toInteger().payload;
+      return (await RespCommandsTier1(_client!).hexists(key, field))
+              .toInteger()
+              .payload ==
+          1;
+    });
+  }
+
+  Future<String?> hget(String key, String field) async {
+    return await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).hget(key, field))
+          .toBulkString()
+          .payload;
     });
   }
 
@@ -479,6 +536,26 @@ class RedisClient {
         }
       }
       return map;
+    });
+  }
+
+  Future<List<String?>> hkeys(String key) async {
+    return await _runWithRetryNew(() async {
+      final result =
+          (await RespCommandsTier1(_client!).hkeys(key)).toArray().payload;
+
+      if (result != null) {
+        return result
+            .map((e) => e.toBulkString().payload)
+            .toList(growable: false);
+      }
+      return [];
+    });
+  }
+
+  Future<int> hlen(String key) async {
+    return await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).hlen(key)).toInteger().payload;
     });
   }
 
@@ -507,6 +584,20 @@ class RedisClient {
     });
 
     return Hscan.fromResult(result);
+  }
+
+  Future<List<String?>> hvals(String key) async {
+    return await _runWithRetryNew(() async {
+      final result =
+          (await RespCommandsTier1(_client!).hvals(key)).toArray().payload;
+
+      if (result != null) {
+        return result
+            .map((e) => e.toBulkString().payload)
+            .toList(growable: false);
+      }
+      return [];
+    });
   }
 
   ///  ------------------------------   List  ------------------------------
@@ -714,6 +805,15 @@ class RedisClient {
 
   ///  ------------------------------   connection  ------------------------------
 
+  Future<void> auth(String password) async {
+    return _runWithRetryNew(() async {
+      (await RespCommandsTier1(_client!).auth(password))
+          .toSimpleString()
+          .payload;
+      return null;
+    });
+  }
+
   Future<void> ping() async {
     return _runWithRetryNew(() async {
       (await RespCommandsTier1(_client!).ping()).toSimpleString().payload;
@@ -731,6 +831,23 @@ class RedisClient {
 
   ///  ------------------------------   server  ------------------------------
 
+  Future<ClientList> clientList() async {
+    List<String> result = await _runWithRetryNew(() async {
+      final bulkString = (await RespCommandsTier1(_client!).clientList())
+          .toBulkString()
+          .payload;
+      if (bulkString != null) {
+        return bulkString
+            .split('\n')
+            .where((e) => e.isNotEmpty)
+            .toList(growable: false);
+      }
+      return [];
+    });
+
+    return ClientList.fromResult(result);
+  }
+
   Future<Info> info([String? section]) async {
     List<String> result = await _runWithRetryNew(() async {
       final bulkString = (await RespCommandsTier1(_client!).info(section))
@@ -745,6 +862,26 @@ class RedisClient {
       return [];
     });
     return Info.fromResult(result);
+  }
+
+  Future<int> dbsize() async {
+    return await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).dbsize()).toInteger().payload;
+    });
+  }
+
+  Future<void> flushAll({bool? doAsync}) async {
+    return await _runWithRetryNew(() async {
+      (await RespCommandsTier1(_client!).flushAll()).toSimpleString();
+      return null;
+    });
+  }
+
+  Future<void> flushDb({bool? doAsync}) async {
+    return await _runWithRetryNew(() async {
+      (await RespCommandsTier1(_client!).flushDb()).toSimpleString();
+      return null;
+    });
   }
 
   Future<SlowlogGet> slowlogGet({int? count}) async {

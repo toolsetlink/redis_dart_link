@@ -19,5 +19,8 @@ void main() {
 
     Scan value1 = await client.scan(0);
     print(value1.keys);
+
+    int existsValue = await client.exists(["1"]);
+    print("existsValue: $existsValue");
   });
 }
