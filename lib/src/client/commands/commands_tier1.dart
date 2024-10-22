@@ -287,6 +287,10 @@ class RespCommandsTier1 {
   ///  ------------------------------   Geo  ------------------------------
   ///  ------------------------------   PubSub  ------------------------------
 
+  Stream<RespType> psubscribe(List<String> pattern) {
+    return tier0.psubscribe(pattern);
+  }
+
   Stream<RespType> subscribe(List<String> channels) {
     return tier0.subscribe(channels);
   }
@@ -518,22 +522,6 @@ class RespCommandsTier1 {
   Future<RespType> rpushx(String key, List<Object> values) async {
     return tier0.execute(['RPUSHX', key, ...values]);
   }
-
-  /// 列表(List) End
-
-  /// 集合(Set) Start
-
-  /// 集合(Set) End
-
-  /// 有序集合(sorted set) Start
-
-  /// 有序集合(sorted set) End
-
-  /// 订阅 Start
-
-  /// 订阅 End
-
-  /// 事务 Start
 
   Future<RespType> discard() async {
     return tier0.execute(['DISCARD']);

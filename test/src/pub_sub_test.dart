@@ -16,11 +16,11 @@ void main() {
     await client.connect();
 
     // 开启监听
-    Stream<Map<String, String?>> stream = client.subscribe(["songang"]);
+    final stream = client.subscribe(["songang"]);
 
     // 订阅流并打印每个接收到的响应
-    stream.listen((Map<String, String?> response) {
-      print("client listen1 response: $response");
+    stream.listen((response) {
+      print("client listen1 response: ${response.toString()}");
     }, onError: (error) {
       print('client Error1: $error'); // 打印错误信息（如果有的话）
     }, onDone: () {

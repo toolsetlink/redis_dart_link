@@ -77,6 +77,36 @@ class RespClient {
     return controller.stream;
   }
 
+  // 监听
+  Stream<RespType> psubscribe(List<String> channels) {
+    final controller = StreamController<RespType>();
+
+    // 构建 SUBSCRIBE 命令
+    final subscribeCommand = RespArray([
+      RespBulkString('PSUBSCRIBE'),
+      ...channels.map((channel) => RespBulkString(channel)).toList(),
+    ]);
+
+    // 发送 SUBSCRIBE 命令
+    _connection.outputSink.add(subscribeCommand.serialize());
+
+    // 启动监听消息的异步方法
+    _listenForMessages(controller);
+
+    // 关闭时清理
+    controller.onCancel = () {
+      // 发送 UNSUBSCRIBE 命令以取消订阅
+      final unsubscribeCommand = RespArray([
+        RespBulkString('PUNSUBSCRIBE'),
+        ...channels.map((channel) => RespBulkString(channel)).toList(),
+      ]);
+      _connection.outputSink.add(unsubscribeCommand.serialize());
+      controller.close();
+    };
+
+    return controller.stream;
+  }
+
   // 定义一个异步方法来监听消息
   Future<void> _listenForMessages(StreamController<RespType> controller) async {
     while (true) {
@@ -97,8 +127,6 @@ class RespClient {
           }
         }
       } catch (e, stackTrace) {
-        print("resp clint try e: $e");
-        print("resp clint try StackTrace: $stackTrace");
         // 处理反序列化错误
         controller.addError(e);
         break; // 退出循环

@@ -7,10 +7,12 @@ import 'client/client.dart';
 import 'client/commands.dart';
 import 'client/server.dart';
 import 'model/hscan.dart';
+import 'model/psubscribe.dart';
 import 'model/scan.dart';
 import 'model/set.dart';
 import 'model/slowlog_get.dart';
 import 'model/sscan.dart';
+import 'model/subscribe.dart';
 import 'model/zscan.dart';
 
 /// {@template redis_client}
@@ -680,23 +682,30 @@ class RedisClient {
   ///  ------------------------------   HyperLogLog  ------------------------------
   ///  ------------------------------   Geo  ------------------------------
   ///  ------------------------------   PubSub  ------------------------------
-  Stream<Map<String, String?>> subscribe(List<String> channels) {
+
+  Stream<Psubscribe> psubscribe(List<String> pattern) {
+    Stream<RespType> stream = (RespCommandsTier1(_client!).psubscribe(pattern));
+
+    return stream.map((resp) {
+      final result = resp.toArray().payload;
+      return Psubscribe.fromResult(result);
+    });
+  }
+
+  Stream<Subscribe> subscribe(List<String> channels) {
     Stream<RespType> stream = (RespCommandsTier1(_client!).subscribe(channels));
 
     return stream.map((resp) {
-      final array = resp.toArray().payload;
+      final result = resp.toArray().payload;
+      return Subscribe.fromResult(result);
+    });
+  }
 
-      if (array != null) {
-        final type = array[0].toBulkString().payload;
-        final channel = array[1].toBulkString().payload;
-        final message = array[2].toBulkString().payload;
-        return {
-          'type': type,
-          'channel': channel,
-          'message': message,
-        };
-      }
-      return {};
+  Future<int> publish(String channel, Object message) async {
+    return await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).publish(channel, message))
+          .toInteger()
+          .payload;
     });
   }
 
