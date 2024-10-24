@@ -15,9 +15,19 @@ void main() {
     // Connect to the Redis server.
     await client.connect();
 
-    // 开启监听
-    final stream = client.subscribe(["songang"]);
+    // subscribe 开启监听
+    // final stream = client.subscribe(["1"]);
+    // // 订阅流并打印每个接收到的响应
+    // stream.listen((response) {
+    //   print("client listen1 response: ${response.toString()}");
+    // }, onError: (error) {
+    //   print('client Error1: $error'); // 打印错误信息（如果有的话）
+    // }, onDone: () {
+    //   print('client Stream1 closed'); // 当流关闭时打印消息
+    // });
 
+    // psubscribe 开启监听
+    final stream = client.psubscribe(["1*"]);
     // 订阅流并打印每个接收到的响应
     stream.listen((response) {
       print("client listen1 response: ${response.toString()}");
@@ -27,8 +37,8 @@ void main() {
       print('client Stream1 closed'); // 当流关闭时打印消息
     });
 
-    // 保持主程序运行，直到手动终止 // 设置为5分钟
-    await Future.delayed(Duration(minutes: 5));
+    // 保持主程序运行，直到手动终止 // 设置为4分钟
+    await Future.delayed(Duration(minutes: 4));
 
     //
   }, timeout: Timeout(Duration(minutes: 5))); // 设置为5分钟

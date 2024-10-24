@@ -61,7 +61,7 @@ class RespClient {
     _connection.outputSink.add(subscribeCommand.serialize());
 
     // 启动监听消息的异步方法
-    _listenForMessages(controller);
+    _subscribeListenForMessages(controller);
 
     // 关闭时清理
     controller.onCancel = () {
@@ -77,30 +77,60 @@ class RespClient {
     return controller.stream;
   }
 
+  Future<void> _subscribeListenForMessages(
+      StreamController<RespType> controller) async {
+    while (true) {
+      try {
+        // 尝试读取数据
+        RespType<dynamic> response = await deserializeRespType(_streamReader);
+        print("response: ${response.toString()}");
+
+        if (response is RespArray) {
+          List<RespType>? array = response.toArray().payload;
+          if (array!.isNotEmpty) {
+            final type = array[0].toBulkString().payload;
+            if (type == 'subscribe') {
+              print("订阅成功信息");
+            } else if (type == 'message') {
+              controller.add(response);
+            }
+          }
+        }
+      } catch (e, stackTrace) {
+        // 处理反序列化错误
+        controller.addError(e);
+        break; // 退出循环
+      }
+
+      // 添加延迟以调长监听时间（例如，延迟 1 秒）
+      await Future.delayed(Duration(seconds: 1));
+    }
+  }
+
   // 监听
-  Stream<RespType> psubscribe(List<String> channels) {
+  Stream<RespType> psubscribe(List<String> pattern) {
     final controller = StreamController<RespType>();
 
     // 构建 SUBSCRIBE 命令
-    final subscribeCommand = RespArray([
+    final psubscribeCommand = RespArray([
       RespBulkString('PSUBSCRIBE'),
-      ...channels.map((channel) => RespBulkString(channel)).toList(),
+      ...pattern.map((channel) => RespBulkString(channel)).toList(),
     ]);
 
     // 发送 SUBSCRIBE 命令
-    _connection.outputSink.add(subscribeCommand.serialize());
+    _connection.outputSink.add(psubscribeCommand.serialize());
 
     // 启动监听消息的异步方法
-    _listenForMessages(controller);
+    _psubscribeListenForMessages(controller);
 
     // 关闭时清理
     controller.onCancel = () {
       // 发送 UNSUBSCRIBE 命令以取消订阅
-      final unsubscribeCommand = RespArray([
+      final unpsubscribeCommand = RespArray([
         RespBulkString('PUNSUBSCRIBE'),
-        ...channels.map((channel) => RespBulkString(channel)).toList(),
+        ...pattern.map((channel) => RespBulkString(channel)).toList(),
       ]);
-      _connection.outputSink.add(unsubscribeCommand.serialize());
+      _connection.outputSink.add(unpsubscribeCommand.serialize());
       controller.close();
     };
 
@@ -108,20 +138,21 @@ class RespClient {
   }
 
   // 定义一个异步方法来监听消息
-  Future<void> _listenForMessages(StreamController<RespType> controller) async {
+  Future<void> _psubscribeListenForMessages(
+      StreamController<RespType> controller) async {
     while (true) {
       try {
         // 尝试读取数据
         RespType<dynamic> response = await deserializeRespType(_streamReader);
+        print("response: ${response.toString()}");
 
         if (response is RespArray) {
           List<RespType>? array = response.toArray().payload;
-
           if (array!.isNotEmpty) {
             final type = array[0].toBulkString().payload;
-            if (type == 'subscribe') {
+            if (type == 'psubscribe') {
               print("订阅成功信息");
-            } else if (type == 'message') {
+            } else if (type == 'pmessage') {
               controller.add(response);
             }
           }

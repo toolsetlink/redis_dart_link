@@ -36,8 +36,8 @@ class RespCommandsTier0 {
     return stream;
   }
 
-  Stream<RespType> psubscribe(List<String> channels) {
-    Stream<RespType> stream = client.psubscribe(channels);
+  Stream<RespType> psubscribe(List<String> pattern) {
+    Stream<RespType> stream = client.psubscribe(pattern);
     return stream;
   }
 }
