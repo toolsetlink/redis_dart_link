@@ -144,7 +144,6 @@ class RespClient {
       try {
         // 尝试读取数据
         RespType<dynamic> response = await deserializeRespType(_streamReader);
-        print("response: ${response.toString()}");
 
         if (response is RespArray) {
           List<RespType>? array = response.toArray().payload;

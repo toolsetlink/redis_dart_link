@@ -8,6 +8,7 @@ import 'client/commands.dart';
 import 'client/server.dart';
 import 'model/client_list.dart';
 import 'model/hscan.dart';
+import 'model/module_list.dart';
 import 'model/psubscribe.dart';
 import 'model/scan.dart';
 import 'model/set.dart';
@@ -935,6 +936,21 @@ class RedisClient {
       return (await RespCommandsTier1(_client!).jsonDel(key: key, path: path))
           .toInteger()
           .payload;
+    });
+  }
+
+  ///  ------------------------------   Commands  ------------------------------
+
+  Future<ModuleList> moduleList() async {
+    return await _runWithRetryNew(() async {
+      List<RespType<dynamic>>? result = await _runWithRetryNew(() async {
+        return (await RespCommandsTier1(_client!).moduleList())
+            .toArray()
+            .payload;
+      });
+
+      print("result: $result");
+      return ModuleList.fromResult(result);
     });
   }
 

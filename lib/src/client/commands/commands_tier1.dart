@@ -517,5 +517,10 @@ class RespCommandsTier1 {
     return tier0.execute(['JSON.MGET', ...key, '$path']);
   }
 
+  ///  ------------------------------   Commands  ------------------------------
+  Future<RespType> moduleList() async {
+    return tier0.execute(['MODULE', 'LIST']);
+  }
+
   /////////////////////////////////////////////////////////////////////////
 }

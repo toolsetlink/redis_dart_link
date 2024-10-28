@@ -6,81 +6,74 @@ class ClientList {
   });
 
   factory ClientList.fromResult(List<String> result) {
-    List<ClientInfo> _list = [];
+    List<ClientInfo> _list = result
+        .where((line) => line.isNotEmpty) // 过滤空行
+        .map((line) => _parseClientInfo(line))
+        .toList(growable: false);
 
-    for (String line in result) {
-      // 忽略空行
-      if (line.isEmpty) {
-        continue;
-      }
-
-      // 提取客户端信息
-      Map<String, String> clientData = {};
-
-      // 按空格分割字符串
-      List<String> pairs = line.split(' ');
-      // 遍历每一对键值
-      for (String pair in pairs) {
-        // 按等号分割键和值
-        List<String> keyValue = pair.split('=');
-        if (keyValue.length == 2) {
-          // 将键值对添加到 map 中
-          clientData[keyValue[0]] = keyValue[1];
-        }
-      }
-
-      // 根据解析出的数据创建 ClientInfo 对象
-      _list.add(ClientInfo(
-        id: int.tryParse(clientData['id'] ?? '0') ?? 0,
-        addr: clientData['addr'],
-        fd: int.tryParse(clientData['fd'] ?? '0') ?? 0,
-        name: clientData['name'],
-        age: int.tryParse(clientData['age'] ?? '0') ?? 0,
-        idle: int.tryParse(clientData['idle'] ?? '0') ?? 0,
-        flags: clientData['flags'],
-        db: int.tryParse(clientData['db'] ?? '0') ?? 0,
-        subscribed: int.tryParse(clientData['subscribed'] ?? '0') ?? 0,
-        psubscribed: int.tryParse(clientData['psubscribed'] ?? '0') ?? 0,
-        multi: int.tryParse(clientData['multi'] ?? '0') ?? 0,
-        qbuf: int.tryParse(clientData['qbuf'] ?? '0') ?? 0,
-        qbuf_free: int.tryParse(clientData['qbuf_free'] ?? '0') ?? 0,
-        obl: int.tryParse(clientData['obl'] ?? '0') ?? 0,
-        oll: int.tryParse(clientData['oll'] ?? '0') ?? 0,
-        omem: int.tryParse(clientData['omem'] ?? '0') ?? 0,
-        events: clientData['events'],
-        cmd: clientData['cmd'],
-      ));
-    }
     return ClientList(list: _list);
+  }
+
+  static ClientInfo _parseClientInfo(String line) {
+    Map<String, String> clientData = {};
+
+    // 拆分行并填充键值对
+    for (String pair in line.split(' ')) {
+      List<String> keyValue = pair.split('=');
+      if (keyValue.length == 2) {
+        clientData[keyValue[0]] = keyValue[1];
+      }
+    }
+
+    return ClientInfo(
+      id: int.tryParse(clientData['id'] ?? '0') ?? 0,
+      addr: clientData['addr'],
+      fd: int.tryParse(clientData['fd'] ?? '0') ?? 0,
+      name: clientData['name'],
+      age: int.tryParse(clientData['age'] ?? '0') ?? 0,
+      idle: int.tryParse(clientData['idle'] ?? '0') ?? 0,
+      flags: clientData['flags'],
+      db: int.tryParse(clientData['db'] ?? '0') ?? 0,
+      subscribed: int.tryParse(clientData['subscribed'] ?? '0') ?? 0,
+      psubscribed: int.tryParse(clientData['psubscribed'] ?? '0') ?? 0,
+      multi: int.tryParse(clientData['multi'] ?? '0') ?? 0,
+      qbuf: int.tryParse(clientData['qbuf'] ?? '0') ?? 0,
+      qbuf_free: int.tryParse(clientData['qbuf_free'] ?? '0') ?? 0,
+      obl: int.tryParse(clientData['obl'] ?? '0') ?? 0,
+      oll: int.tryParse(clientData['oll'] ?? '0') ?? 0,
+      omem: int.tryParse(clientData['omem'] ?? '0') ?? 0,
+      events: clientData['events'],
+      cmd: clientData['cmd'],
+    );
   }
 
   @override
   String toString() {
     return 'ClientList('
-        'list: [${list.map((info) => info.toString()).join(", ")}]'
+        'list: [${list.join(", ")}]'
         ')';
   }
 }
 
 class ClientInfo {
-  final int id; //客户端的唯一标识符。
-  final String? addr; //客户端的 IP 地址和端口号，比如 127.0.0.1:6379。
-  final int fd; //与客户端相关联的文件描述符。
-  final String? name; //客户端的名称，如果设置了的话。
-  final int age; //客户端连接的时间（以秒为单位）。
-  final int idle; //客户端在当前连接中空闲的时间（以秒为单位）。
-  final String? flags; //客户端的标志，表示连接的状态，比如是否为订阅者、是否为从节点等。
-  final int db; //客户端当前选择的数据库的编号。
-  final int subscribed; //如果客户端订阅了频道，这里会显示其订阅的频道数量。
-  final int psubscribed; //如果客户端订阅了模式，这里显示其模式订阅的数量。
-  final int multi; //如果客户端处于 MULTI 状态（事务状态），会显示为 1。
-  final int qbuf; //客户端的查询缓冲区的字节数。
-  final int qbuf_free; //查询缓冲区的剩余空间。
-  final int obl; //输出缓冲区的字节数。
-  final int oll; //输出缓冲区的列表长度。
-  final int omem; //输出缓冲区的内存使用量。
-  final String? events; //客户端是否在等待特定事件（如可读或可写）。
-  final String? cmd; //客户端最近执行的命令。
+  final int id; // 客户端的唯一标识符。
+  final String? addr; // 客户端的 IP 地址和端口号，比如 127.0.0.1:6379。
+  final int fd; // 与客户端相关联的文件描述符。
+  final String? name; // 客户端的名称，如果设置了的话。
+  final int age; // 客户端连接的时间（以秒为单位）。
+  final int idle; // 客户端在当前连接中空闲的时间（以秒为单位）。
+  final String? flags; // 客户端的标志，表示连接的状态，比如是否为订阅者、是否为从节点等。
+  final int db; // 客户端当前选择的数据库的编号。
+  final int subscribed; // 如果客户端订阅了频道，这里会显示其订阅的频道数量。
+  final int psubscribed; // 如果客户端订阅了模式，这里显示其模式订阅的数量。
+  final int multi; // 如果客户端处于 MULTI 状态（事务状态），会显示为 1。
+  final int qbuf; // 客户端的查询缓冲区的字节数。
+  final int qbuf_free; // 查询缓冲区的剩余空间。
+  final int obl; // 输出缓冲区的字节数。
+  final int oll; // 输出缓冲区的列表长度。
+  final int omem; // 输出缓冲区的内存使用量。
+  final String? events; // 客户端是否在等待特定事件（如可读或可写）。
+  final String? cmd; // 客户端最近执行的命令。
 
   ClientInfo({
     required this.id,
