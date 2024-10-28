@@ -949,7 +949,6 @@ class RedisClient {
             .payload;
       });
 
-      print("result: $result");
       return ModuleList.fromResult(result);
     });
   }
