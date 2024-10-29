@@ -1,5 +1,5 @@
 name: redis_dart_link
-version: 0.0.3
+version: 0.0.4
 description: Redis / Resp agreement database  client.
 homepage: https://github.com/toolsetlink/redis_dart_link
 repository: https://github.com/toolsetlink/redis_dart_link

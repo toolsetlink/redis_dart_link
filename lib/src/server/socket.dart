@@ -40,19 +40,19 @@ Future<RespServerConnection> connectSecureSocket(
   String host, {
   int port = 6379,
   Duration? timeout,
-  List<int> caCertBytes = const [],
-  List<int> certBytes = const [],
-  List<int> keyBytes = const [],
+  List<int>? caCertBytes,
+  List<int>? certBytes,
+  List<int>? keyBytes,
 }) async {
   // 创建一个 SecurityContext
   SecurityContext context = SecurityContext(withTrustedRoots: true);
 
   // 加载 CA 证书
-  context.setTrustedCertificatesBytes(caCertBytes);
+  context.setTrustedCertificatesBytes(caCertBytes!);
 
   // 加载客户端证书和私钥
-  context.useCertificateChainBytes(certBytes);
-  context.usePrivateKeyBytes(keyBytes);
+  context.useCertificateChainBytes(certBytes!);
+  context.usePrivateKeyBytes(keyBytes!);
 
   SecureSocket socket = await SecureSocket.connect(
     host,

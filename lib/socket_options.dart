@@ -52,9 +52,9 @@ class RedisSocketOptions {
   bool tlsSecure;
 
   /// tls 证书
-  List<int> caCertBytes;
-  List<int> certBytes;
-  List<int> keyBytes;
+  List<int>? caCertBytes;
+  List<int>? certBytes;
+  List<int>? keyBytes;
 
   // 私有构造函数，确保只能通过工厂构造函数创建实例
   RedisSocketOptions._({
@@ -67,9 +67,9 @@ class RedisSocketOptions {
     required this.retryInterval,
     required this.retryAttempts,
     required this.tlsSecure,
-    required this.caCertBytes,
-    required this.certBytes,
-    required this.keyBytes,
+    this.caCertBytes,
+    this.certBytes,
+    this.keyBytes,
   });
 
   // 工厂构造函数
@@ -83,9 +83,9 @@ class RedisSocketOptions {
     Duration retryInterval = const Duration(seconds: 1),
     int retryAttempts = 3,
     bool tlsSecure = false,
-    List<int> caCertBytes = const [],
-    List<int> certBytes = const [],
-    List<int> keyBytes = const [],
+    List<int>? caCertBytes,
+    List<int>? certBytes,
+    List<int>? keyBytes,
   }) {
     return RedisSocketOptions._(
       host: host,

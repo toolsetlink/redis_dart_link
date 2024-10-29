@@ -91,3 +91,15 @@ $3
 200
 $3
 Bob
+*2
+$6
+SELECT
+$1
+0
+*3
+$3
+SET
+$6
+string
+$6
+string
