@@ -1,4 +1,4 @@
-import '../client/client.dart';
+import '../src/client.dart';
 
 class Zscan {
   final int cursor; // 游标

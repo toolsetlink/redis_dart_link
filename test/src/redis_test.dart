@@ -1,4 +1,5 @@
-import 'package:redis_dart_link/redis_dart_link.dart';
+import 'package:redis_dart_link/client.dart';
+import 'package:redis_dart_link/socket_options.dart';
 import 'package:test/test.dart';
 
 void main() {

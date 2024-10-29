@@ -1,4 +1,4 @@
-import '../client/client.dart';
+import '../src/client.dart';
 
 class Hscan {
   final int cursor; // 游标

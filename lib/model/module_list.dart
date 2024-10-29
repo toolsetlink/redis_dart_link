@@ -1,4 +1,4 @@
-import '../client/client.dart';
+import '../src/client.dart';
 
 class ModuleList {
   final List<ModuleListInfo> list; // key列表

@@ -1,4 +1,4 @@
-import '../client/client.dart';
+import '../src/client.dart';
 
 class Psubscribe {
   final String? type;

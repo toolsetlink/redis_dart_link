@@ -1,4 +1,4 @@
-import 'package:redis_dart_link/src/client/client.dart';
+import '../src/client.dart';
 
 class Set {
   final bool ok; // 是否成功
