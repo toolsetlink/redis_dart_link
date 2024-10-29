@@ -9,3 +9,6 @@
 
 ### [0.0.3] - 2024-10-29
 - Fix bugs
+
+### [0.0.4] - 2024-10-29
+- Optimize code structure
