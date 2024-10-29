@@ -77,10 +77,6 @@ class RedisClient {
   /// 当客户端断开连接时完成的future。
   Future<void> get _untilDisconnected => _disconnected.future;
 
-  /// The Redis JSON commands.
-  /// Redis JSON命令。
-  // RedisJson get json => RedisJson._(client: this);
-
   /// 登录到Redis
   Future<dynamic> _login() async {
     String? username = _socketOptions.username;

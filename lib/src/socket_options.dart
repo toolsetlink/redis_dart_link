@@ -37,15 +37,15 @@ class RedisSocketOptions {
   int db;
 
   /// The delay between connection attempts.
-  /// Defaults to 1 second.
+  /// Defaults to 3 second.
   /// 连接尝试之间的延迟。
-  /// 默认为1秒。
+  /// 默认为3秒。
   Duration retryInterval;
 
   /// The maximum number of connection attempts.
-  /// Defaults to 10.
+  /// Defaults to 3.
   /// 最大连接尝试数。
-  /// 默认为10。
+  /// 默认为3。
   int retryAttempts;
 
   /// 指定是否使用安全（TLS/SSL）Socket连接。
@@ -81,7 +81,7 @@ class RedisSocketOptions {
     int db = 0,
     Duration timeout = const Duration(seconds: 30),
     Duration retryInterval = const Duration(seconds: 1),
-    int retryAttempts = 10,
+    int retryAttempts = 3,
     bool tlsSecure = false,
     List<int> caCertBytes = const [],
     List<int> certBytes = const [],
