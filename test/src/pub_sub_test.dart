@@ -28,7 +28,7 @@ void main() {
     // });
 
     // psubscribe 开启监听
-    final stream = client.psubscribe(["1*"]);
+    final stream = client.psubscribe(["*"]);
     // 订阅流并打印每个接收到的响应
     stream.listen((response) {
       print("client listen1 response: ${response.toString()}");
