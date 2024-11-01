@@ -5,6 +5,7 @@ import 'command_options.dart';
 import 'exception.dart';
 import 'logger.dart';
 import 'model/client_list.dart';
+import 'model/execute.dart';
 import 'model/hscan.dart';
 import 'model/info.dart';
 import 'model/module_list.dart';
@@ -341,16 +342,15 @@ class RedisClient {
   }
 
   /// 执行命令行
-  Future<dynamic> execute(String str) async {
+  Future<Execute> execute(String str) async {
     List<Object> commandList =
         str.split(" ").where((item) => item.trim().isNotEmpty).toList();
-    return _runWithRetryNew(
-      () async {
-        final result = await RespCommandsTier0(_client!).execute(commandList);
-        // if (result.isError) throw RedisException(result.toString());
-        return result.payload;
-      },
-    );
+
+    RespType<dynamic> result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).execute(commandList));
+    });
+
+    return Execute.fromResult(result);
   }
 
   ///  ------------------------------   Key  ------------------------------

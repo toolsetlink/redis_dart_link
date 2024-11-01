@@ -65,6 +65,10 @@ class RespCommandsTier1 {
   RespCommandsTier1(RespClient client) : tier0 = RespCommandsTier0(client);
   RespCommandsTier1.tier0(this.tier0);
 
+  Future<RespType> execute(List<Object> command) async {
+    return tier0.execute([...command]);
+  }
+
   ///  ------------------------------   Key  ------------------------------
 
   Future<RespType> del(List<String> keys) async {
