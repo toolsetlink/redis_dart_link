@@ -341,7 +341,6 @@ class RedisClient {
     }
   }
 
-  /// 执行命令行
   Future<Execute> execute(String str) async {
     List<Object> commandList =
         str.split(" ").where((item) => item.trim().isNotEmpty).toList();
@@ -727,18 +726,12 @@ class RedisClient {
               .payload;
 
       if (result != null) {
-        // 创建一个 Map 来存储返回的结果。
         final Map<String, double> memberScores = {};
 
-        // 由于 WITHSCORES 选项的存在，结果是一个数组，元素和分数交替出现。
-        // 即 [member1, score1, member2, score2, ...]。
-        // 因此我们需要每两步遍历一次数组。
         for (int i = 0; i < result.length; i += 2) {
-          // 获取成员和对应的分数。
           final member = result[i].toBulkString().payload;
           final score = result[i + 1].toBulkString().payload;
 
-          // 将分数由 String 转换为 double，并将它们添加到 Map 中。
           if (member != null && score != null) {
             memberScores[member] = double.parse(score);
           }

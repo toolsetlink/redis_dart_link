@@ -156,7 +156,7 @@ class RespClient {
             }
           }
         }
-      } catch (e, stackTrace) {
+      } catch (e) {
         // 处理反序列化错误
         controller.addError(e);
         break; // 退出循环

@@ -1,7 +1,7 @@
 Redis client for Dart
 =====================
 
-[Redis](http://redis.io/) protocol parser and client for [Dart](https://www.dartlang.org)
+[Redis](https://redis.io/) protocol parser and client for [Dart](https://www.dartlang.org)
 
 ## Changes
 
