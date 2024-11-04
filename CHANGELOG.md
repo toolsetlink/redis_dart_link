@@ -12,3 +12,6 @@
 
 ### [0.0.4] - 2024-10-29
 - Optimize code structure
+
+### [0.0.5] - 2024-11-04
+- Update remarks

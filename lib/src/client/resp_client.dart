@@ -78,27 +78,23 @@ class RespClient {
       try {
         // 尝试读取数据
         RespType<dynamic> response = await deserializeRespType(_streamReader);
-        print("response: ${response.toString()}");
 
         if (response is RespArray) {
           List<RespType>? array = response.toArray().payload;
           if (array!.isNotEmpty) {
             final type = array[0].toBulkString().payload;
             if (type == 'subscribe') {
-              print("订阅成功信息");
+              print("Subscribe success");
             } else if (type == 'message') {
               controller.add(response);
             }
           }
         }
-      } catch (e, stackTrace) {
+      } catch (e) {
         // 处理反序列化错误
         controller.addError(e);
         break; // 退出循环
       }
-
-      // 添加延迟以调长监听时间（例如，延迟 1 秒）
-      await Future.delayed(Duration(seconds: 1));
     }
   }
 
@@ -145,7 +141,7 @@ class RespClient {
           if (array!.isNotEmpty) {
             final type = array[0].toBulkString().payload;
             if (type == 'psubscribe') {
-              print("订阅成功信息");
+              print("Subscribe success");
             } else if (type == 'pmessage') {
               controller.add(response);
             }
@@ -156,9 +152,6 @@ class RespClient {
         controller.addError(e);
         break; // 退出循环
       }
-
-      // 添加延迟以调长监听时间（例如，延迟 1 秒）
-      await Future.delayed(Duration(seconds: 1));
     }
   }
 }
