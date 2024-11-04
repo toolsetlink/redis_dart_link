@@ -1,6 +1,6 @@
 name: redis_dart_link
 version: 0.0.5
-description: This project is a Redis SDK in Dart. It encapsulates Redis operation commands, facilitating developers to implement functions like data storage and reading in Dart applications, enhancing development efficiency and suitable for data storage and management in various projects.
+description: This project is a Redis SDK in Dart. It encapsulates Redis operation commands, enhancing development efficiency and suitable for data storage and management in various projects.
 homepage: https://github.com/toolsetlink/redis_dart_link
 repository: https://github.com/toolsetlink/redis_dart_link
 issue_tracker: https://txc.qq.com/products/645521

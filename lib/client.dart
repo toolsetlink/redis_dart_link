@@ -187,10 +187,8 @@ class RedisClient {
     try {
       _logger.info('Connecting to ${_socketOptions.connectionUri}.');
 
-      late final connection;
-
       /// 获取连接参数
-      connection = await _getSecureOrInsecureConnection();
+      RespServerConnection connection = await _getSecureOrInsecureConnection();
 
       /// 进行异步连接
       unawaited(_onConnectionOpened(connection));
