@@ -300,12 +300,6 @@ Future<RespType> deserializeRespType(StreamReader streamReader) async {
       }
 
       return RespArray(elements);
-    // case 0x45: // 特殊处理
-    // final additionalData =
-    //     utf8.decode(await streamReader.takeWhile((data) => data != 0x0d));
-    // print("Ignoring typePrefix 0x45 with additional data: $additionalData");
-    // 继续处理或抛出异常，视你的需求而定
-    // throw StateError('unexpected character: $typePrefix');
     default:
       throw StateError('unexpected character: $typePrefix');
   }

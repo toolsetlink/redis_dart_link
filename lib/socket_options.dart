@@ -37,9 +37,9 @@ class RedisSocketOptions {
   int db;
 
   /// The delay between connection attempts.
-  /// Defaults to 3 second.
+  /// Defaults to 30 second.
   /// 连接尝试之间的延迟。
-  /// 默认为3秒。
+  /// 默认30秒。
   Duration retryInterval;
 
   /// The maximum number of connection attempts.
@@ -48,15 +48,16 @@ class RedisSocketOptions {
   /// 默认为3。
   int retryAttempts;
 
+  /// Specifies whether to use a secure (TLS/SSL) Socket connection.
   /// 指定是否使用安全（TLS/SSL）Socket连接。
   bool tlsSecure;
 
+  /// tls certificate
   /// tls 证书
   List<int>? caCertBytes;
   List<int>? certBytes;
   List<int>? keyBytes;
 
-  // 私有构造函数，确保只能通过工厂构造函数创建实例
   RedisSocketOptions._({
     required this.host,
     required this.port,
@@ -72,7 +73,6 @@ class RedisSocketOptions {
     this.keyBytes,
   });
 
-  // 工厂构造函数
   factory RedisSocketOptions({
     String host = 'localhost',
     int port = 6379,
@@ -80,7 +80,7 @@ class RedisSocketOptions {
     String? password,
     int db = 0,
     Duration timeout = const Duration(seconds: 30),
-    Duration retryInterval = const Duration(seconds: 1),
+    Duration retryInterval = const Duration(seconds: 30),
     int retryAttempts = 3,
     bool tlsSecure = false,
     List<int>? caCertBytes,

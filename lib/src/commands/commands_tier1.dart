@@ -1,18 +1,14 @@
 part of commands;
 
-///
 /// The mode when to set a value for a key.
 /// 设置键值的模式。
-///
 enum SetMode {
   onlyIfNotExists,
   onlyIfExists,
 }
 
-///
 /// The mode how to handle expiration.
 /// 如何处理过期的模式。
-///
 class ExpireMode {
   final DateTime? timestamp;
   final Duration? time;
@@ -24,10 +20,8 @@ class ExpireMode {
         time = null;
 }
 
-///
 /// Where to insert a value.
 /// 在哪里插入值。
-///
 class InsertMode {
   static const before = InsertMode._('BEFORE');
   static const after = InsertMode._('AFTER');
@@ -37,10 +31,8 @@ class InsertMode {
   const InsertMode._(this._value);
 }
 
-///
 /// Type of a Redis client.
 /// Redis客户端的类型。
-///
 class ClientType {
   static const normal = ClientType._('normal');
   static const master = ClientType._('master');
@@ -52,13 +44,11 @@ class ClientType {
   const ClientType._(this._value);
 }
 
-///
 /// Commands of tier 1 always return a [RespType]. It is up
 /// to the consumer to convert the result correctly into the
 /// concrete subtype.
 ///
 /// 第一级的命令总是返回一个[RespType]。再上级将结果正确地转换为具体子类型。
-///
 class RespCommandsTier1 {
   final RespCommandsTier0 tier0;
 
@@ -489,8 +479,10 @@ class RespCommandsTier1 {
 
   ///  ------------------------------   json  ------------------------------
 
-  // # 使用了NX选项，当指定的路径不存在时则设置，如果已经存在则不设置并返回nil
-  // # 使用了XX选项，当指定的路径存在时则设置，如果不存在则不设置并返回nil
+  /// # The NX option is used, set if the specified path does not exist, not set if it already exists and returns nil
+  /// # The XX option is used, set when the specified path exists, not set if it does not and returns nil
+  /// # 使用了NX选项，当指定的路径不存在时则设置，如果已经存在则不设置并返回nil
+  /// # 使用了XX选项，当指定的路径存在时则设置，如果不存在则不设置并返回nil
   Future<RespType> jsonSet({
     required String key,
     String path = r'$',
