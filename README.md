@@ -7,8 +7,9 @@ Redis client for Dart
 
 [CHANGELOG.md](CHANGELOG.md)
 
-Example:
 ## Example:
+
+###  Connect:
 
 ```
 import 'package:redis_dart_link/client.dart';
@@ -37,7 +38,7 @@ try {
 
 ```
 
-See more examples in the test folder
+See more examples in the example folder
 
 ## References
 * [resp_client](https://pub.dev/packages/resp_client)

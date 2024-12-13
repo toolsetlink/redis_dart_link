@@ -52,17 +52,17 @@ class Execute {
     return parsedList;
   }
 
-  static List<dynamic> _parseMultiLevelArray(List<RespType> array) {
-    List<dynamic> parsedList = [];
-    for (var element in array) {
-      if (element.isArray && element.payload != null) {
-        parsedList.addAll(_parseMultiLevelArray(element.payload!));
-      } else {
-        parsedList.add(element.payload);
-      }
-    }
-    print("parsedList: $parsedList");
-
-    return parsedList;
-  }
+  // static List<dynamic> _parseMultiLevelArray(List<RespType> array) {
+  //   List<dynamic> parsedList = [];
+  //   for (var element in array) {
+  //     if (element.isArray && element.payload != null) {
+  //       parsedList.addAll(_parseMultiLevelArray(element.payload!));
+  //     } else {
+  //       parsedList.add(element.payload);
+  //     }
+  //   }
+  //   print("parsedList: $parsedList");
+  //
+  //   return parsedList;
+  // }
 }
