@@ -957,6 +957,29 @@ class RedisClient {
   }
 
   ///  ------------------------------   json  ------------------------------
+  /// https://redis.io/docs/latest/develop/data-types/json/
+
+  /// jsonArrappend
+  Future<int> jsonArrappend(String key, Object value,
+      {String path = r'$'}) async {
+    return await _runWithRetryNew(() async {
+      List<RespType<dynamic>>? result = await _runWithRetryNew(() async {
+        return (await RespCommandsTier1(_client!)
+                .jsonArrappend(key: key, path: path, value: value))
+            .toArray()
+            .payload;
+      });
+
+      // 确保 result 不为 null，并且至少有一个元素
+      if (result != null && result.isNotEmpty) {
+        // 获取第一个元素并转换为 int
+        return result[0].payload as int; // 确保 payload 是 int 类型
+      } else {
+        // 处理空列表的情况，返回默认值或抛出异常
+        throw Exception('No elements in the result list');
+      }
+    });
+  }
 
   /// jsonSet
   Future<void> jsonSet({

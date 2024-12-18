@@ -557,6 +557,223 @@ class RespCommandsTier1 {
 
   ///  ------------------------------   json  ------------------------------
 
+  /// jsonArrappend
+  Future<RespType> jsonArrappend({
+    required String key,
+    String path = r'$',
+    required Object value,
+  }) async {
+    return tier0.execute([
+      'JSON.ARRAPPEND',
+      key,
+      path,
+      value,
+    ]);
+  }
+
+  /// jsonArrIndex
+  Future<RespType> jsonArrIndex({
+    required String key,
+    String path = '\$',
+    int? index = 0,
+    required Object value,
+  }) async {
+    return tier0.execute([
+      'JSON.ARRINDEX',
+      key,
+      path,
+      index,
+      value,
+    ]);
+  }
+
+  /// jsonArrInsert
+  Future<RespType> jsonArrInsert({
+    required String key,
+    String path = r'$',
+    int? index = 0,
+    required List<Object> values,
+  }) async {
+    return tier0.execute([
+      'JSON.ARRINSERT',
+      key,
+      path,
+      index,
+      values,
+    ]);
+  }
+
+  /// jsonArrLen
+  Future<RespType> jsonArrLen({
+    required String key,
+    String path = r'$',
+  }) async {
+    return tier0.execute([
+      'JSON.ARRLEN',
+      key,
+      path,
+    ]);
+  }
+
+  /// jsonArrPop
+  Future<RespType> jsonArrPop({
+    required String key,
+    String path = r'$',
+  }) async {
+    return tier0.execute([
+      'JSON.ARRPOP',
+      key,
+      path,
+    ]);
+  }
+
+  /// jsonArrTrim
+  Future<RespType> jsonArrTrim({
+    required String key,
+    String path = r'$',
+    required int start,
+    required int stop,
+  }) async {
+    return tier0.execute([
+      'JSON.ARRTRIM',
+      key,
+      path,
+      start,
+      stop,
+    ]);
+  }
+
+  /// jsonClear
+  Future<RespType> jsonClear({
+    required String key,
+    String path = r'$',
+  }) async {
+    return tier0.execute([
+      'JSON.CLEAR',
+      key,
+      path,
+    ]);
+  }
+
+  /// jsonDebug
+  Future<RespType> jsonDebug() async {
+    return tier0.execute(['JSON.DEBUG']);
+  }
+
+  /// jsonDebugHelp
+  Future<RespType> jsonDebugHelp() async {
+    return tier0.execute(['JSON.DEBUG HELP']);
+  }
+
+  /// jsonDebugMemory
+  Future<RespType> jsonDebugMemory({
+    required String key,
+    String path = r'$',
+  }) async {
+    return tier0.execute([
+      'JSON.DEBUG MEMORY',
+      key,
+      path,
+    ]);
+  }
+
+  /// jsonDel
+  Future<RespType> jsonDel({required String key, String path = r'$'}) async {
+    return tier0.execute([
+      'JSON.DEL',
+      '$key',
+      '$path',
+    ]);
+  }
+
+  /// jsonForget
+  Future<RespType> jsonForget({
+    required String key,
+    String path = r'$',
+  }) async {
+    return tier0.execute([
+      'JSON.FORGET',
+      '$key',
+      '$path',
+    ]);
+  }
+
+  /// jsonGet
+  Future<RespType> jsonGet({required String key, String path = r'$'}) async {
+    return tier0.execute(['JSON.GET', '$key', '$path']);
+  }
+
+  /// jsonMerge
+  Future<RespType> jsonMerge({
+    required String key,
+    String path = r'$',
+    required Object value,
+  }) async {
+    return tier0.execute([
+      'JSON.MERGE',
+      key,
+      path,
+      value,
+    ]);
+  }
+
+  /// jsonMget
+  Future<RespType> jsonMget(
+      {required List<String> keys, String path = r'$'}) async {
+    return tier0.execute(['JSON.MGET', ...keys, '$path']);
+  }
+
+  /// jsonMset
+  Future<RespType> jsonMset({
+    required String key,
+    String path = r'$',
+    required Object value,
+  }) async {
+    return tier0.execute(['JSON.MSET', key, '$path', value]);
+  }
+
+  /// jsonNumincrby
+  Future<RespType> jsonNumincrby({
+    required String key,
+    String path = r'$',
+    required Object value,
+  }) async {
+    return tier0.execute(['JSON.NUMINCRBY', key, '$path', value]);
+  }
+
+  /// jsonNummultby
+  Future<RespType> jsonNummultby({
+    required String key,
+    String path = r'$',
+    required Object value,
+  }) async {
+    return tier0.execute(['JSON.NUMMULTBY', key, '$path', value]);
+  }
+
+  /// jsonObjkeys
+  Future<RespType> jsonObjkeys({
+    required String key,
+    String path = r'$',
+  }) async {
+    return tier0.execute(['JSON.OBJKEYS', key, '$path']);
+  }
+
+  /// jsonObjlen
+  Future<RespType> jsonObjlen({
+    required String key,
+    String path = r'$',
+  }) async {
+    return tier0.execute(['JSON.OBJLEN', key, '$path']);
+  }
+
+  /// jsonResp
+  Future<RespType> jsonResp({
+    required String key,
+    String path = r'$',
+  }) async {
+    return tier0.execute(['JSON.RESP', key, '$path']);
+  }
+
   /// jsonSet
   /// # The NX option is used, set if the specified path does not exist, not set if it already exists and returns nil
   /// # The XX option is used, set when the specified path exists, not set if it does not and returns nil
@@ -579,20 +796,37 @@ class RespCommandsTier1 {
     ]);
   }
 
-  /// jsonGet
-  Future<RespType> jsonGet({required String key, String path = r'$'}) async {
-    return tier0.execute(['JSON.GET', '$key', '$path']);
+  /// jsonStrappend
+  Future<RespType> jsonStrappend({
+    required String key,
+    String path = r'$',
+    required Object value,
+  }) async {
+    return tier0.execute(['JSON.STRAPPEND', key, '$path', value]);
   }
 
-  /// jsonDel
-  Future<RespType> jsonDel({required String key, String path = r'$'}) async {
-    return tier0.execute(['JSON.DEL', '$key', '$path']);
+  /// jsonStrlen
+  Future<RespType> jsonStrlen({
+    required String key,
+    String path = r'$',
+  }) async {
+    return tier0.execute(['JSON.STRLEN', key, '$path']);
   }
 
-  /// jsonMget
-  Future<RespType> jsonMget(
-      {required List<String> key, String path = r'$'}) async {
-    return tier0.execute(['JSON.MGET', ...key, '$path']);
+  /// jsonToggle
+  Future<RespType> jsonToggle({
+    required String key,
+    String path = r'$',
+  }) async {
+    return tier0.execute(['JSON.TOGGLE', key, '$path']);
+  }
+
+  /// jsonType
+  Future<RespType> jsonType({
+    required String key,
+    String path = r'$',
+  }) async {
+    return tier0.execute(['JSON.TYPE', key, '$path']);
   }
 
   ///  ------------------------------   Commands  ------------------------------
