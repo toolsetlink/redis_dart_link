@@ -557,10 +557,10 @@ class RespCommandsTier1 {
 
   ///  ------------------------------   json  ------------------------------
 
-  /// jsonArrappend
-  Future<RespType> jsonArrappend({
+  /// jsonArrAppend
+  Future<RespType> jsonArrAppend({
     required String key,
-    String path = r'$',
+    String path = '\$',
     required Object value,
   }) async {
     return tier0.execute([
@@ -575,22 +575,24 @@ class RespCommandsTier1 {
   Future<RespType> jsonArrIndex({
     required String key,
     String path = '\$',
-    int? index = 0,
     required Object value,
+    int? start,
+    int? end,
   }) async {
     return tier0.execute([
       'JSON.ARRINDEX',
       key,
       path,
-      index,
       value,
+      if (start != null) start,
+      if (end != null) end,
     ]);
   }
 
   /// jsonArrInsert
   Future<RespType> jsonArrInsert({
     required String key,
-    String path = r'$',
+    String path = '\$',
     int? index = 0,
     required List<Object> values,
   }) async {
@@ -606,7 +608,7 @@ class RespCommandsTier1 {
   /// jsonArrLen
   Future<RespType> jsonArrLen({
     required String key,
-    String path = r'$',
+    String path = '\$',
   }) async {
     return tier0.execute([
       'JSON.ARRLEN',
@@ -618,19 +620,21 @@ class RespCommandsTier1 {
   /// jsonArrPop
   Future<RespType> jsonArrPop({
     required String key,
-    String path = r'$',
+    String path = '\$',
+    index = 0,
   }) async {
     return tier0.execute([
       'JSON.ARRPOP',
       key,
       path,
+      index,
     ]);
   }
 
   /// jsonArrTrim
   Future<RespType> jsonArrTrim({
     required String key,
-    String path = r'$',
+    String path = '\$',
     required int start,
     required int stop,
   }) async {
@@ -646,7 +650,7 @@ class RespCommandsTier1 {
   /// jsonClear
   Future<RespType> jsonClear({
     required String key,
-    String path = r'$',
+    String path = '\$',
   }) async {
     return tier0.execute([
       'JSON.CLEAR',
@@ -668,7 +672,7 @@ class RespCommandsTier1 {
   /// jsonDebugMemory
   Future<RespType> jsonDebugMemory({
     required String key,
-    String path = r'$',
+    String path = '\$',
   }) async {
     return tier0.execute([
       'JSON.DEBUG MEMORY',
@@ -678,7 +682,7 @@ class RespCommandsTier1 {
   }
 
   /// jsonDel
-  Future<RespType> jsonDel({required String key, String path = r'$'}) async {
+  Future<RespType> jsonDel({required String key, String path = '\$'}) async {
     return tier0.execute([
       'JSON.DEL',
       '$key',
@@ -689,7 +693,7 @@ class RespCommandsTier1 {
   /// jsonForget
   Future<RespType> jsonForget({
     required String key,
-    String path = r'$',
+    String path = '\$',
   }) async {
     return tier0.execute([
       'JSON.FORGET',
@@ -699,14 +703,14 @@ class RespCommandsTier1 {
   }
 
   /// jsonGet
-  Future<RespType> jsonGet({required String key, String path = r'$'}) async {
+  Future<RespType> jsonGet({required String key, String path = '\$'}) async {
     return tier0.execute(['JSON.GET', '$key', '$path']);
   }
 
   /// jsonMerge
   Future<RespType> jsonMerge({
     required String key,
-    String path = r'$',
+    String path = '\$',
     required Object value,
   }) async {
     return tier0.execute([
@@ -719,14 +723,14 @@ class RespCommandsTier1 {
 
   /// jsonMget
   Future<RespType> jsonMget(
-      {required List<String> keys, String path = r'$'}) async {
+      {required List<String> keys, String path = '\$'}) async {
     return tier0.execute(['JSON.MGET', ...keys, '$path']);
   }
 
   /// jsonMset
   Future<RespType> jsonMset({
     required String key,
-    String path = r'$',
+    String path = '\$',
     required Object value,
   }) async {
     return tier0.execute(['JSON.MSET', key, '$path', value]);
@@ -735,7 +739,7 @@ class RespCommandsTier1 {
   /// jsonNumincrby
   Future<RespType> jsonNumincrby({
     required String key,
-    String path = r'$',
+    String path = '\$',
     required Object value,
   }) async {
     return tier0.execute(['JSON.NUMINCRBY', key, '$path', value]);
@@ -744,7 +748,7 @@ class RespCommandsTier1 {
   /// jsonNummultby
   Future<RespType> jsonNummultby({
     required String key,
-    String path = r'$',
+    String path = '\$',
     required Object value,
   }) async {
     return tier0.execute(['JSON.NUMMULTBY', key, '$path', value]);
@@ -753,7 +757,7 @@ class RespCommandsTier1 {
   /// jsonObjkeys
   Future<RespType> jsonObjkeys({
     required String key,
-    String path = r'$',
+    String path = '\$',
   }) async {
     return tier0.execute(['JSON.OBJKEYS', key, '$path']);
   }
@@ -761,7 +765,7 @@ class RespCommandsTier1 {
   /// jsonObjlen
   Future<RespType> jsonObjlen({
     required String key,
-    String path = r'$',
+    String path = '\$',
   }) async {
     return tier0.execute(['JSON.OBJLEN', key, '$path']);
   }
@@ -769,7 +773,7 @@ class RespCommandsTier1 {
   /// jsonResp
   Future<RespType> jsonResp({
     required String key,
-    String path = r'$',
+    String path = '\$',
   }) async {
     return tier0.execute(['JSON.RESP', key, '$path']);
   }
@@ -781,7 +785,7 @@ class RespCommandsTier1 {
   /// # 使用了XX选项，当指定的路径存在时则设置，如果不存在则不设置并返回nil
   Future<RespType> jsonSet({
     required String key,
-    String path = r'$',
+    String path = '\$',
     required String value,
     bool nx = false,
     bool xx = false,
@@ -799,7 +803,7 @@ class RespCommandsTier1 {
   /// jsonStrappend
   Future<RespType> jsonStrappend({
     required String key,
-    String path = r'$',
+    String path = '\$',
     required Object value,
   }) async {
     return tier0.execute(['JSON.STRAPPEND', key, '$path', value]);
@@ -808,7 +812,7 @@ class RespCommandsTier1 {
   /// jsonStrlen
   Future<RespType> jsonStrlen({
     required String key,
-    String path = r'$',
+    String path = '\$',
   }) async {
     return tier0.execute(['JSON.STRLEN', key, '$path']);
   }
@@ -816,7 +820,7 @@ class RespCommandsTier1 {
   /// jsonToggle
   Future<RespType> jsonToggle({
     required String key,
-    String path = r'$',
+    String path = '\$',
   }) async {
     return tier0.execute(['JSON.TOGGLE', key, '$path']);
   }
@@ -824,7 +828,7 @@ class RespCommandsTier1 {
   /// jsonType
   Future<RespType> jsonType({
     required String key,
-    String path = r'$',
+    String path = '\$',
   }) async {
     return tier0.execute(['JSON.TYPE', key, '$path']);
   }

@@ -837,6 +837,37 @@ class RedisClient {
   }
 
   ///  ------------------------------   transactions  ------------------------------
+
+  /// discard
+  Future<void> discard() async {
+    (await RespCommandsTier1(_client!).discard()).toSimpleString().payload;
+    return null;
+  }
+
+  /// exec
+  Future<void> exec() async {
+    (await RespCommandsTier1(_client!).exec()).toArray().payload;
+    return null;
+  }
+
+  /// multi
+  Future<void> multi() async {
+    (await RespCommandsTier1(_client!).multi()).toSimpleString().payload;
+    return null;
+  }
+
+  /// unwatch
+  Future<void> unwatch() async {
+    (await RespCommandsTier1(_client!).unwatch()).toSimpleString().payload;
+    return null;
+  }
+
+  /// watch
+  Future<void> watch(List<String> keys) async {
+    (await RespCommandsTier1(_client!).watch(keys)).toSimpleString().payload;
+    return null;
+  }
+
   ///  ------------------------------   scripting  ------------------------------
 
   ///  ------------------------------   connection  ------------------------------
@@ -959,56 +990,318 @@ class RedisClient {
   ///  ------------------------------   json  ------------------------------
   /// https://redis.io/docs/latest/develop/data-types/json/
 
-  /// jsonArrappend
-  Future<int> jsonArrappend(String key, Object value,
-      {String path = r'$'}) async {
-    return await _runWithRetryNew(() async {
-      List<RespType<dynamic>>? result = await _runWithRetryNew(() async {
-        return (await RespCommandsTier1(_client!)
-                .jsonArrappend(key: key, path: path, value: value))
-            .toArray()
-            .payload;
-      });
+  /// jsonArrAppend
+  Future<int> jsonArrAppend(String key, Object value,
+      {String path = '\$'}) async {
+    List<RespType<dynamic>>? result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!)
+              .jsonArrAppend(key: key, path: path, value: value))
+          .toArray()
+          .payload;
+    });
 
-      // 确保 result 不为 null，并且至少有一个元素
-      if (result != null && result.isNotEmpty) {
-        // 获取第一个元素并转换为 int
-        return result[0].payload as int; // 确保 payload 是 int 类型
-      } else {
-        // 处理空列表的情况，返回默认值或抛出异常
-        throw Exception('No elements in the result list');
-      }
+    if (result != null && result.isNotEmpty) {
+      return result[0].payload as int; // 确保 payload 是 int 类型
+    } else {
+      throw Exception('jsonArrAppend: No elements in the result list');
+    }
+  }
+
+  /// jsonArrIndex
+  Future<int> jsonArrIndex(
+    String key,
+    Object value, {
+    String path = '\$',
+    int? start,
+    int? end,
+  }) async {
+    List<RespType<dynamic>>? result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).jsonArrIndex(
+        key: key,
+        path: path,
+        value: value,
+        start: start,
+        end: end,
+      ))
+          .toArray()
+          .payload;
+    });
+    if (result != null && result.isNotEmpty) {
+      return result[0].payload as int; // 确保 payload 是 int 类型
+    } else {
+      throw Exception('jsonArrAppend: No elements in the result list');
+    }
+  }
+
+  /// jsonArrInsert
+  Future<int> jsonArrInsert(
+    String key,
+    Object value, {
+    String path = '\$',
+    int? start,
+    int? end,
+  }) async {
+    List<RespType<dynamic>>? result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).jsonArrIndex(
+        key: key,
+        path: path,
+        value: value,
+        start: start,
+        end: end,
+      ))
+          .toArray()
+          .payload;
+    });
+
+    if (result != null && result.isNotEmpty) {
+      return result[0].payload as int; // 确保 payload 是 int 类型
+    } else {
+      throw Exception('jsonArrAppend: No elements in the result list');
+    }
+  }
+
+  /// jsonArrLen
+  Future<int> jsonArrLen(String key, {String path = '\$'}) async {
+    List<RespType<dynamic>>? result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!)
+              .jsonArrLen(key: key, path: path))
+          .toArray()
+          .payload;
+    });
+
+    if (result != null && result.isNotEmpty) {
+      return result[0].payload as int; // 确保 payload 是 int 类型
+    } else {
+      throw Exception('jsonArrLen: No elements in the result list');
+    }
+  }
+
+  /// jsonArrPop
+  Future<String> jsonArrPop(
+    String key, {
+    String path = '\$',
+    int index = 0,
+  }) async {
+    List<RespType<dynamic>>? result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!)
+              .jsonArrPop(key: key, path: path, index: index))
+          .toArray()
+          .payload;
+    });
+
+    if (result != null && result.isNotEmpty) {
+      return result[0].payload as String; // 确保 payload 是 string 类型
+    } else {
+      throw Exception('jsonArrPop: No elements in the result list');
+    }
+  }
+
+  /// jsonArrTrim
+  Future<int> jsonArrTrim(
+    String key, {
+    String path = '\$',
+    int start = 0,
+    int stop = 0,
+  }) async {
+    List<RespType<dynamic>>? result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!)
+              .jsonArrTrim(key: key, path: path, start: start, stop: stop))
+          .toArray()
+          .payload;
+    });
+
+    if (result != null && result.isNotEmpty) {
+      return result[0].payload as int;
+    } else {
+      throw Exception('jsonArrTrim: No elements in the result list');
+    }
+  }
+
+  /// jsonClear
+  Future<int> jsonClear(
+    String key, {
+    String path = '\$',
+  }) async {
+    return await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).jsonClear(key: key, path: path))
+          .toInteger()
+          .payload;
     });
   }
 
-  /// jsonSet
-  Future<void> jsonSet({
-    required String key,
-    String path = r'$',
-    required dynamic value,
-    bool nx = false,
-    bool xx = false,
-  }) async {
-    (await RespCommandsTier1(_client!)
-            .jsonSet(key: key, path: path, value: value, nx: nx, xx: xx))
-        .toSimpleString();
-    return null;
-  }
-
-  /// jsonGet
-  Future<String?> jsonGet(String key, {String path = r'$'}) async {
-    return (await RespCommandsTier1(_client!).jsonGet(key: key, path: path))
-        .toBulkString()
-        .payload;
-  }
-
   /// jsonDel
-  Future<int> jsonDel(String key, {String path = r'$'}) async {
+  Future<int> jsonDel(String key, {String path = '\$'}) async {
     return await _runWithRetryNew(() async {
       return (await RespCommandsTier1(_client!).jsonDel(key: key, path: path))
           .toInteger()
           .payload;
     });
+  }
+
+  /// jsonForget
+  Future<int> jsonForget(String key, {String path = '\$'}) async {
+    return await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!)
+              .jsonForget(key: key, path: path))
+          .toInteger()
+          .payload;
+    });
+  }
+
+  /// jsonGet
+  Future<String?> jsonGet(String key, {String path = '\$'}) async {
+    return await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).jsonGet(key: key, path: path))
+          .toBulkString()
+          .payload;
+    });
+  }
+
+  /// jsonMerge
+  Future<void> jsonMerge(String key,
+      {String path = '\$', required value}) async {
+    await _runWithRetryNew(() async {
+      (await RespCommandsTier1(_client!)
+              .jsonMerge(key: key, path: path, value: value))
+          .toSimpleString();
+
+      return null;
+    });
+  }
+
+  /// jsonMget
+  Future<List<String?>> jsonMget(List<String> keys,
+      {String path = '\$'}) async {
+    return await _runWithRetryNew(() async {
+      final result =
+          (await RespCommandsTier1(_client!).jsonMget(keys: keys, path: path))
+              .toArray()
+              .payload;
+
+      if (result != null) {
+        return result
+            .map((e) => e.toBulkString().payload)
+            .toList(growable: false);
+      }
+      return [];
+    });
+  }
+
+  /// jsonMset
+  Future<void> jsonMset(String key,
+      {String path = '\$', required value}) async {
+    await _runWithRetryNew(() async {
+      (await RespCommandsTier1(_client!)
+              .jsonMset(key: key, path: path, value: value))
+          .toSimpleString();
+
+      return null;
+    });
+  }
+
+  /// jsonNumincrby
+  Future<String?> jsonNumincrby(
+    String key, {
+    String path = '\$',
+    required value,
+  }) async {
+    return await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).jsonNumincrby(
+        key: key,
+        path: path,
+        value: value,
+      ))
+          .toBulkString()
+          .payload;
+    });
+  }
+
+  /// jsonNummultby
+  Future<String?> jsonNummultby(
+    String key, {
+    String path = '\$',
+    required value,
+  }) async {
+    return await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).jsonNummultby(
+        key: key,
+        path: path,
+        value: value,
+      ))
+          .toBulkString()
+          .payload;
+    });
+  }
+
+  /// jsonObjkeys todo待解决
+  // Future<JsonObjkeys> jsonObjkeys(
+  //   String key, {
+  //   String path = '\$',
+  // }) async {
+  //   List<RespType<dynamic>>? result = await _runWithRetryNew(() async {
+  //     (await RespCommandsTier1(_client!).jsonObjkeys(
+  //       key: key,
+  //       path: path,
+  //     ))
+  //         .toArray()
+  //         .payload;
+  //   });
+  //
+  //   return JsonObjkeys.fromResult(result);
+  // }
+
+  /// jsonSet
+  Future<void> jsonSet({
+    required String key,
+    String path = '\$',
+    required dynamic value,
+    bool nx = false,
+    bool xx = false,
+  }) async {
+    await _runWithRetryNew(() async {
+      (await RespCommandsTier1(_client!)
+              .jsonSet(key: key, path: path, value: value, nx: nx, xx: xx))
+          .toSimpleString();
+    });
+    return null;
+  }
+
+  /// jsonStrappend
+  // Future<List<int>> jsonStrappend(
+  //   String key, {
+  //   String path = '\$',
+  //   required value,
+  // }) async {
+  //   return await _runWithRetryNew(() async {
+  //     final result = (await RespCommandsTier1(_client!).jsonStrappend(
+  //       key: key,
+  //       path: path,
+  //       value: value,
+  //     ))
+  //         .toArray()
+  //         .payload;
+  //
+  //     if (result != null) {
+  //       return result.map((e) => e.toInteger().payload).toList(growable: false);
+  //     }
+  //     return [];
+  //   });
+  // }
+
+  /// jsonStrlen
+  Future<int> jsonStrlen(String key, {String path = '\$'}) async {
+    List<RespType<dynamic>>? result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!)
+              .jsonStrlen(key: key, path: path))
+          .toArray()
+          .payload;
+    });
+
+    if (result != null && result.isNotEmpty) {
+      return result[0].payload as int;
+    } else {
+      throw Exception('jsonStrlen: No elements in the result list');
+    }
   }
 
   ///  ------------------------------   Commands  ------------------------------
