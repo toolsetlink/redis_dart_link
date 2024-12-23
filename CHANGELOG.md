@@ -1,5 +1,8 @@
 # Changelog
 
+### [0.1.0] - 2024-12-23
+- More geo commands are supported
+
 ### [0.0.6] - 2024-12-22
 - More json commands are supported
 - Support transaction execution
