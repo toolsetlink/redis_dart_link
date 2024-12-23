@@ -33,8 +33,11 @@ void main() {
           'Catania',
         );
 
-        var Val =
-            await client.geoDist('test-geoAdd-Sicily', 'Palermo', 'Catania');
+        var Val = await client.geoDist(
+          'test-geoAdd-Sicily',
+          'Palermo',
+          'Catania',
+        );
         print("geoDist Val.toString() : ${Val}");
       } catch (e) {
         print("An error occurred: $e");

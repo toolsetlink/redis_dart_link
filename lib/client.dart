@@ -818,8 +818,8 @@ class RedisClient {
   }
 
   /// geoDist
-  Future<String?> geoDist(
-      String key, String member1, String member2, String? unit) async {
+  Future<String?> geoDist(String key, String member1, String member2,
+      [String? unit]) async {
     return await _runWithRetryNew(() async {
       return (await RespCommandsTier1(_client!)
               .geoDist(key, member1, member2, unit))
