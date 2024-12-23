@@ -432,6 +432,38 @@ class RespCommandsTier1 {
 
   ///  ------------------------------   HyperLogLog  ------------------------------
   ///  ------------------------------   Geo  ------------------------------
+  /// geoAdd
+  Future<RespType> geoAdd(
+      String key, double longitude, double latitude, String member) async {
+    return tier0.execute(['GEOADD', key, longitude, latitude, member]);
+  }
+
+  /// geoDist
+  Future<RespType> geoDist(
+    String key,
+    String member1,
+    String member2,
+    String? unit,
+  ) async {
+    return tier0.execute([
+      'GEODIST',
+      key,
+      member1,
+      member2,
+      if (unit != null) unit,
+    ]);
+  }
+
+  /// geoHash
+  Future<RespType> geoHash(String key, List<Object> members) async {
+    return tier0.execute(['GEOHASH', key, ...members]);
+  }
+
+  /// geoPos
+  Future<RespType> geoPos(String key, List<Object> members) async {
+    return tier0.execute(['GEOPOS', key, ...members]);
+  }
+
   ///  ------------------------------   PubSub  ------------------------------
 
   /// psubscribe

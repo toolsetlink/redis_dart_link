@@ -6,6 +6,7 @@ import 'exception.dart';
 import 'logger.dart';
 import 'model/client_list.dart';
 import 'model/execute.dart';
+import 'model/geo_pos.dart';
 import 'model/hscan.dart';
 import 'model/info.dart';
 import 'model/module_list.dart';
@@ -805,6 +806,55 @@ class RedisClient {
 
   ///  ------------------------------   HyperLogLog  ------------------------------
   ///  ------------------------------   Geo  ------------------------------
+  /// geoAdd
+  Future<int> geoAdd(
+      String key, double longitude, double latitude, String member) async {
+    return await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!)
+              .geoAdd(key, longitude, latitude, member))
+          .toInteger()
+          .payload;
+    });
+  }
+
+  /// geoDist
+  Future<String?> geoDist(
+      String key, String member1, String member2, String? unit) async {
+    return await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!)
+              .geoDist(key, member1, member2, unit))
+          .toBulkString()
+          .payload;
+    });
+  }
+
+  /// geoHash
+  Future<List<String?>> geoHash(String key, List<Object> members) async {
+    return await _runWithRetryNew(() async {
+      final result = (await RespCommandsTier1(_client!).geoHash(key, members))
+          .toArray()
+          .payload;
+
+      if (result != null) {
+        return result
+            .map((e) => e.toBulkString().payload)
+            .toList(growable: false);
+      }
+      return [];
+    });
+  }
+
+  /// geoHash
+  Future<GeoPos> geoPos(String key, List<Object> members) async {
+    List<RespType<dynamic>>? result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).geoPos(key, members))
+          .toArray()
+          .payload;
+    });
+
+    return GeoPos.fromResult(result);
+  }
+
   ///  ------------------------------   PubSub  ------------------------------
 
   /// psubscribe
