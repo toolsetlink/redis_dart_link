@@ -1,5 +1,5 @@
 name: redis_dart_link
-version: 0.2.0
+version: 0.2.1
 description: A Redis SDK in Dart that encapsulates Redis commands to enhance development efficiency for data storage and management.
 homepage: https://github.com/toolsetlink/redis_dart_link
 repository: https://github.com/toolsetlink/redis_dart_link
