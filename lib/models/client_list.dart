@@ -1,4 +1,4 @@
-part of model;
+part of models;
 
 /// ClientList
 class ClientList {

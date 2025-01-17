@@ -1,4 +1,4 @@
-part of model;
+part of models;
 
 /// Scan
 class Scan {

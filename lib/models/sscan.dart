@@ -1,4 +1,4 @@
-part of model;
+part of models;
 
 /// Sscan
 class Sscan {

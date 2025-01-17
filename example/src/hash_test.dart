@@ -1,5 +1,5 @@
 import 'package:redis_dart_link/client.dart';
-import 'package:redis_dart_link/model.dart';
+import 'package:redis_dart_link/models.dart';
 import 'package:test/test.dart';
 
 import 'redis_client_init.dart';

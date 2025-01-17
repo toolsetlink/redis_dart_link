@@ -9,7 +9,7 @@ import 'package:redis_dart_link/src/server.dart';
 import 'command_options.dart';
 import 'exception.dart';
 import 'logger.dart';
-import 'model.dart';
+import 'models.dart';
 
 /// {@template redis_client}
 /// A client for interacting with a Redis server.
