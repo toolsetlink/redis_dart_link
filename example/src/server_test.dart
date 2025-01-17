@@ -1,5 +1,5 @@
 import 'package:redis_dart_link/client.dart';
-import 'package:redis_dart_link/model/client_list.dart';
+import 'package:redis_dart_link/model.dart';
 import 'package:redis_dart_link/socket_options.dart';
 import 'package:test/test.dart';
 

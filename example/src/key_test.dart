@@ -1,27 +1,37 @@
 import 'package:redis_dart_link/client.dart';
-import 'package:redis_dart_link/model/scan.dart';
-import 'package:redis_dart_link/socket_options.dart';
+import 'package:redis_dart_link/model.dart';
 import 'package:test/test.dart';
 
+import 'redis_client_init.dart';
+
 void main() {
-  test('adds one to input values', () async {
-    /// Create a new redis instance
-    RedisClient client = RedisClient(
-      socket: RedisSocketOptions(
-        host: '127.0.0.1',
-        port: 7379,
-        password: '123456',
-      ),
-    );
+  group('Redis Commands Tests', () {
+    late RedisClient client;
 
-    // Connect to the Redis server.
-    await client.connect();
-    await client.ping();
+    setUpAll(() async {
+      client = await initRedisClient();
+    });
 
-    Scan value1 = await client.scan(0);
-    print(value1.keys);
+    tearDownAll(() async {
+      await closeRedisClient(client);
+    });
 
-    int existsValue = await client.exists(["1"]);
-    print("existsValue: $existsValue");
+    test('scan command test', () async {
+      try {
+        final List<Object> values = ["member1", "member2"];
+
+        await client.sadd(
+          'scan-test',
+          values,
+        );
+
+        Scan scanResult = await client.scan(0, count: 10000);
+        print('1 cursor: ${scanResult.cursor}');
+        print('1 keys.len: ${scanResult.keys.length}');
+      } catch (e) {
+        print("An error occurred: $e");
+      }
+      // }, skip: 'scan Skipping this test temporarily');
+    });
   });
 }

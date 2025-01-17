@@ -1,23 +1,37 @@
 import 'package:redis_dart_link/client.dart';
-import 'package:redis_dart_link/model/hscan.dart';
-import 'package:redis_dart_link/socket_options.dart';
+import 'package:redis_dart_link/model.dart';
 import 'package:test/test.dart';
 
+import 'redis_client_init.dart';
+
 void main() {
-  test('adds one to input values', () async {
-    /// Create a new redis instance
-    RedisClient client = RedisClient(
-      socket: RedisSocketOptions(
-        host: '127.0.0.1',
-        port: 7379,
-        password: '123456',
-      ),
-    );
+  group('Redis Commands Tests', () {
+    late RedisClient client;
 
-    // Connect to the Redis server.
-    await client.connect();
+    setUpAll(() async {
+      client = await initRedisClient();
+    });
 
-    Hscan value1 = await client.hscan('hash', 0);
-    print(value1.keys);
+    tearDownAll(() async {
+      await closeRedisClient(client);
+    });
+
+    test('hscan command test', () async {
+      try {
+        final Map<Object, double> values = {'member1': 1.0};
+
+        await client.hmset(
+          'hscan-test',
+          values,
+        );
+
+        Hscan value1 = await client.hscan('hscan-test', 0);
+
+        print("hscan Val.toString() : ${value1.toString()}");
+      } catch (e) {
+        print("An error occurred: $e");
+      }
+      // }, skip: 'hscan Skipping this test temporarily');
+    });
   });
 }

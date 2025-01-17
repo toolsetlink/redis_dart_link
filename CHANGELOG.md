@@ -1,20 +1,16 @@
 # Changelog
 
+### [0.2.0] - 2025-01-17
+- Support resp3 protocol
+- 支持 resp3 协议
+
 ### [0.1.0] - 2024-12-23
 - More geo commands are supported
+- 支持更多geo命令
 
 ### [0.0.6] - 2024-12-22
 - More json commands are supported
 - Support transaction execution
-
-### [0.0.5] - 2024-11-04
-- Update remarks
-
-### [0.0.4] - 2024-10-29
-- Optimize code structure
-
-### [0.0.3] - 2024-10-29
-- Fix bugs
 
 ### [0.0.2] - 2024-10-22
 - Support json

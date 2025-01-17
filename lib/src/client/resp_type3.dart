@@ -1,16 +1,17 @@
 part of client;
 
-const String suffix = '\r\n';
-
 ///
-/// Base class for all RESP types.
-/// 所有RESP类型的基类。
+/// Base class for all RESP3 types.
+/// 所有RESP3类型的基类。
 ///
-abstract class RespType<P> {
+abstract class RespType3<P> {
+  /// prefix
   final String prefix;
+
+  /// payload
   final P payload;
 
-  const RespType._(this.prefix, this.payload);
+  const RespType3._(this.prefix, this.payload);
 
   ///
   /// Serializes this type to RESP.
@@ -43,11 +44,13 @@ abstract class RespType<P> {
   /// 提供具体类型，否则为[false]返回。如果处理程序抛出错误
   /// 执行时，将错误引发给方法的调用者。
   T handleAs<T>({
-    T Function(RespSimpleString)? simple,
-    T Function(RespBulkString)? bulk,
-    T Function(RespInteger)? integer,
-    T Function(RespArray)? array,
-    T Function(RespError)? error,
+    T Function(RespSimpleString3)? simple,
+    T Function(RespBulkString3)? bulk,
+    T Function(RespInteger3)? integer,
+    T Function(RespArray3)? array,
+    T Function(RespError3)? error,
+    T Function(RespMap3)? map,
+    T Function(RespNull3)? null3,
   }) {
     if (isSimpleString && simple != null) {
       return simple(toSimpleString());
@@ -59,7 +62,12 @@ abstract class RespType<P> {
       return array(toArray());
     } else if (isError && error != null) {
       return error(toError());
+    } else if (isMap && map != null) {
+      return map(toMap());
+    } else if (isNull && null3 != null) {
+      return null3(toNull());
     }
+
     throw ArgumentError('No handler provided for type $typeName!');
   }
 
@@ -67,34 +75,46 @@ abstract class RespType<P> {
   /// Converts this type to a simple string. Throws a
   /// [StateError] if this is not a simple string.
   ///
-  RespSimpleString toSimpleString() =>
+  RespSimpleString3 toSimpleString() =>
       throw StateError('${toString()} is not a simple string!');
 
   ///
   /// Converts this type to a bulk string. Throws a
   /// [StateError] if this is not a bulk string.
   ///
-  RespBulkString toBulkString() =>
+  RespBulkString3 toBulkString() =>
       throw StateError('${toString()} is not a bulk string!');
 
   ///
   /// Converts this type to an integer. Throws a
   /// [StateError] if this is not an integer.
   ///
-  RespInteger toInteger() =>
+  RespInteger3 toInteger() =>
       throw StateError('${toString()} is not an integer!');
 
   ///
   /// Converts this type to an array. Throws a
   /// [StateError] if this is not an array.
   ///
-  RespArray toArray() => throw StateError('${toString()} is not an array!');
+  RespArray3 toArray() => throw StateError('${toString()} is not an array!');
 
   ///
   /// Converts this type to an error. Throws a
   /// [StateError] if this is not an error.
   ///
-  RespError toError() => throw StateError('${toString()} is not an error!');
+  RespError3 toError() => throw StateError('${toString()} is not an error!');
+
+  ///
+  /// Converts this type to an map. Throws a
+  /// [StateError] if this is not an map.
+  ///
+  RespMap3 toMap() => throw StateError('${toString()} is not an map!');
+
+  ///
+  /// Converts this type to an null. Throws a
+  /// [StateError] if this is not an null.
+  ///
+  RespNull3 toNull() => throw StateError('${toString()} is not an null!');
 
   ///
   /// Return [true] if this type is a simple string.
@@ -123,16 +143,28 @@ abstract class RespType<P> {
   /// 如果此类型是错误，则返回[true]。
   ///
   bool get isError => false;
+
+  ///
+  /// Return [true] if this type is an map.
+  /// 如果此类型为map，则返回[true]。
+  ///
+  bool get isMap => false;
+
+  ///
+  /// Return [true] if this type is an null.
+  /// 如果此类型为null，则返回[true]。
+  ///
+  bool get isNull => false;
 }
 
 ///
 /// Implementation of a RESP simple string.
 ///
-class RespSimpleString extends RespType<String> {
-  const RespSimpleString(String payload) : super._('+', payload);
+class RespSimpleString3 extends RespType3<String> {
+  const RespSimpleString3(String payload) : super._('+', payload);
 
   @override
-  RespSimpleString toSimpleString() => this;
+  RespSimpleString3 toSimpleString() => this;
 
   @override
   bool get isSimpleString => true;
@@ -145,10 +177,11 @@ class RespSimpleString extends RespType<String> {
 /// Implementation of a RESP bulk string.
 /// 实现一个RESP批量字符串。
 ///
-class RespBulkString extends RespType<String?> {
-  static final nullString = utf8.encode('\$-1$suffix');
+class RespBulkString3 extends RespType3<String?> {
+  static final nullString = utf8.encode('\_$suffix');
 
-  const RespBulkString(String? payload) : super._('\$', payload);
+  /// Resp3BulkString
+  const RespBulkString3(String? payload) : super._('\$', payload);
 
   @override
   List<int> serialize() {
@@ -161,7 +194,7 @@ class RespBulkString extends RespType<String?> {
   }
 
   @override
-  RespBulkString toBulkString() => this;
+  RespBulkString3 toBulkString() => this;
 
   @override
   bool get isBulkString => true;
@@ -174,14 +207,13 @@ class RespBulkString extends RespType<String?> {
 /// Implementation of a RESP integer.
 /// 实现一个RESP整数。
 ///
-class RespInteger extends RespType<int> {
+class RespInteger3 extends RespType3<int> {
   /// RespInteger
-  const RespInteger(int payload) : super._(':', payload);
+  const RespInteger3(int payload) : super._(':', payload);
 
   @override
-  RespInteger toInteger() => this;
+  RespInteger3 toInteger() => this;
 
-  /// todo 先还原原始代码
   @override
   List<int> serialize() {
     return utf8.encode('$prefix${payload}');
@@ -197,11 +229,12 @@ class RespInteger extends RespType<int> {
 ///
 /// Implementation of a RESP array.
 /// 一个RESP数组的实现。
-///
-class RespArray extends RespType<List<RespType>?> {
+class RespArray3 extends RespType3<List<RespType3>?> {
+  /// nullArray
   static final nullArray = utf8.encode('\*-1$suffix');
 
-  const RespArray(List<RespType>? payload) : super._('*', payload);
+  /// RespArray3
+  const RespArray3(List<RespType3>? payload) : super._('*', payload);
 
   @override
   List<int> serialize() {
@@ -217,7 +250,7 @@ class RespArray extends RespType<List<RespType>?> {
   }
 
   @override
-  RespArray toArray() => this;
+  RespArray3 toArray() => this;
 
   @override
   bool get isArray => true;
@@ -230,11 +263,12 @@ class RespArray extends RespType<List<RespType>?> {
 /// Implementation of a RESP error.
 /// 实现一个RESP错误。
 ///
-class RespError extends RespType<String> {
-  const RespError(String payload) : super._('-', payload);
+class RespError3 extends RespType3<String> {
+  /// RespError3
+  const RespError3(String payload) : super._('-', payload);
 
   @override
-  RespError toError() => this;
+  RespError3 toError() => this;
 
   @override
   bool get isError => true;
@@ -243,59 +277,130 @@ class RespError extends RespType<String> {
   String get typeName => 'error';
 }
 
-/// deserializeRespType
-Future<RespType> deserializeRespType(StreamReader streamReader) async {
-  final typePrefix = await streamReader.takeOne();
+///
+/// Implementation of a RESP null.
+/// 实现一个RESP错误。
+///
+class RespNull3 extends RespType3<String> {
+  /// RespError3
+  const RespNull3(String payload) : super._('_', payload);
 
+  @override
+  RespNull3 toNull() => this;
+
+  @override
+  bool get isNull => true;
+
+  @override
+  String get typeName => 'null';
+}
+
+///
+/// Implementation of a RESP map.
+/// 一个RESP map的实现。
+///
+class RespMap3 extends RespType3<List<RespType3>?> {
+  static final nullMap = utf8.encode('%0$suffix');
+
+  /// RespMap3
+  const RespMap3(List<RespType3>? payload) : super._('%', payload);
+
+  @override
+  List<int> serialize() {
+    final pl = payload;
+    if (pl != null) {
+      return [
+        ...utf8.encode('$prefix${pl.length}$suffix'),
+        ...pl.expand((element) => element.serialize()),
+        ...utf8.encode('$suffix'),
+      ];
+    }
+    return nullMap;
+  }
+
+  @override
+  RespMap3 toMap() => this;
+
+  @override
+  bool get isMap => true;
+
+  @override
+  String get typeName => 'map';
+}
+
+/// deserializeRespType
+Future<RespType3> deserializeRespType3(StreamReader streamReader) async {
+  final typePrefix = await streamReader.takeOne();
+  // print("deserializeRespType3() typePrefix: $typePrefix");
+
+  // 0x0d 回车
+  // 0x2b：加号（+）     43  simple string
+  // 0x2d：减号（-）     45  error
+  // 0x3a：冒号（:）     58  integer
+  // 0x24：美元符号（$）  36  bulk string
+  // 0x2a：星号（*）     42  array
+  // 0x25：百分号（%）   37  map /// 实际使用跟 array 一样
+  // 0x5F：(_)         95  Null
+  // 0x2C：(,)         44  Double
+  // 0x23：(#)         35  Boolean  // 其中true被表示为#t\r\n，而false被表示为#f\r\n
+  // 0x21：(!)         33  Blob error
+  // 0x3D：(=)         61  Verbatim string
+  // 0x28：(()         40  Big number
+  // 0x7E：(~)         126 Set /// 实际使用跟 array 一样
+  // 0x7C：(|)         124 Attribute
+  // 0x3E：(>)         62  Push /// 实际使用 Blob string
+  // Stream 未实装
   switch (typePrefix) {
     case 0x2b: // simple string
-
       final payload =
           utf8.decode(await streamReader.takeWhile((data) => data != 0x0d));
       await streamReader.takeCount(2);
-
-      return RespSimpleString(payload);
+      return RespSimpleString3(payload);
     case 0x2d: // error
-
       final payload =
           utf8.decode(await streamReader.takeWhile((data) => data != 0x0d));
       await streamReader.takeCount(2);
-
-      return RespError(payload);
+      return RespError3(payload);
     case 0x3a: // integer
-
       final payload = int.parse(
           utf8.decode(await streamReader.takeWhile((data) => data != 0x0d)));
       await streamReader.takeCount(2);
-      return RespInteger(payload);
-
+      return RespInteger3(payload);
     case 0x24: // bulk string
-
       final length = int.parse(
           utf8.decode(await streamReader.takeWhile((data) => data != 0x0d)));
       await streamReader.takeCount(2);
       if (length == -1) {
-        return RespBulkString(null);
+        return RespBulkString3(null);
       }
       final payload = utf8.decode(await streamReader.takeCount(length));
       await streamReader.takeCount(2);
-
-      return RespBulkString(payload);
+      return RespBulkString3(payload);
     case 0x2a: // array
-
       final count = int.parse(
           utf8.decode(await streamReader.takeWhile((data) => data != 0x0d)));
       await streamReader.takeCount(2);
       if (count == -1) {
-        return RespArray(null);
+        return RespArray3(null);
       }
-      final elements = <RespType>[];
+      final elements = <RespType3>[];
       for (var i = 0; i < count; i++) {
-        elements.add(await deserializeRespType(streamReader));
+        elements.add(await deserializeRespType3(streamReader));
       }
-
-      return RespArray(elements);
+      return RespArray3(elements);
+    case 0x25: // map
+      final count = int.parse(
+          utf8.decode(await streamReader.takeWhile((data) => data != 0x0d)));
+      await streamReader.takeCount(2);
+      if (count == -1) {
+        return RespMap3(null);
+      }
+      final elements = <RespType3>[];
+      for (var i = 0; i < count; i++) {
+        elements.add(await deserializeRespType3(streamReader));
+      }
+      return RespMap3(elements);
     default:
-      throw StateError('unexpected character: $typePrefix');
+      throw StateError('resp3 unexpected character: $typePrefix');
   }
 }

@@ -46,45 +46,45 @@ class ClientType {
   String get value => _value;
 }
 
-/// Commands of tier 1 always return a [RespType]. It is up
+/// Commands of tier 1 always return a [RespType2]. It is up
 /// to the consumer to convert the result correctly into the
 /// concrete subtype.
 ///
-/// 第一级的命令总是返回一个[RespType]。再上级将结果正确地转换为具体子类型。
+/// 第一级的命令总是返回一个[RespType2]。再上级将结果正确地转换为具体子类型。
 class RespCommandsTier1 {
   final RespCommandsTier0 tier0;
 
   RespCommandsTier1(RespClient client) : tier0 = RespCommandsTier0(client);
   RespCommandsTier1.tier0(this.tier0);
 
-  Future<RespType> execute(List<Object> command) async {
+  Future<Object> execute(List<Object> command) async {
     return tier0.execute([...command]);
   }
 
   ///  ------------------------------   Key  ------------------------------
 
   /// del
-  Future<RespType> del(List<String> keys) async {
+  Future<Object> del<T>(List<String> keys) async {
     return tier0.execute(['DEL', ...keys]);
   }
 
   /// exists
-  Future<RespType> exists(List<String> keys) async {
+  Future<Object> exists(List<String> keys) async {
     return tier0.execute(['EXISTS', ...keys]);
   }
 
   /// expire
-  Future<RespType> expire(String key, Duration timeout) async {
+  Future<Object> expire(String key, Duration timeout) async {
     return tier0.execute(['EXPIRE', key, timeout.inSeconds]);
   }
 
   /// pexpire
-  Future<RespType> pexpire(String key, Duration timeout) async {
+  Future<Object> pexpire(String key, Duration timeout) async {
     return tier0.execute(['PEXPIRE', key, timeout.inMilliseconds]);
   }
 
   /// rename
-  Future<RespType> rename(String keyName, String newKeyName) async {
+  Future<Object> rename(String keyName, String newKeyName) async {
     return tier0.execute([
       'RENAME',
       keyName,
@@ -93,7 +93,7 @@ class RespCommandsTier1 {
   }
 
   /// scan
-  Future<RespType> scan(int cursor, {String? pattern, int? count}) async {
+  Future<Object> scan(int cursor, {String? pattern, int? count}) async {
     return tier0.execute([
       'SCAN',
       '$cursor',
@@ -103,39 +103,39 @@ class RespCommandsTier1 {
   }
 
   /// ttl
-  Future<RespType> ttl(String key) async {
+  Future<Object> ttl(String key) async {
     return tier0.execute(['TTL', key]);
   }
 
   /// type
-  Future<RespType> type(String key) async {
+  Future<Object> type(String key) async {
     return tier0.execute(['TYPE', key]);
   }
 
   ///  ------------------------------   String  ------------------------------
 
   /// decr
-  Future<RespType> decr(String key) async {
+  Future<Object> decr(String key) async {
     return tier0.execute(['DECR', key]);
   }
 
   /// decrby
-  Future<RespType> decrby(String key, int decrement) async {
+  Future<Object> decrby(String key, int decrement) async {
     return tier0.execute(['DECRBY', key, '$decrement']);
   }
 
   /// get
-  Future<RespType> get(String key) async {
+  Future<Object> get(String key) async {
     return tier0.execute(['GET', key]);
   }
 
   /// incr
-  Future<RespType> incr(String key) async {
+  Future<Object> incr(String key) async {
     return tier0.execute(['INCR', key]);
   }
 
   /// incrby
-  Future<RespType> incrby(String key, int increment) async {
+  Future<Object> incrby(String key, int increment) async {
     return tier0.execute(['INCRBY', key, '$increment']);
   }
 
@@ -148,7 +148,7 @@ class RespCommandsTier1 {
   /// EXAT 绝对过期时间 以秒为单位的UNIX时间戳所对应的时间为过期时间
   /// PX 相对过期时间 以毫秒为单位设置过期时间
   /// PXAT 绝对过期时间 以毫秒为单位的UNIX时间戳所对应的时间为过期时间
-  Future<RespType> set(
+  Future<Object> set(
     Object key,
     Object value, {
     Duration? ex,
@@ -186,39 +186,39 @@ class RespCommandsTier1 {
     ]);
   }
 
-  Future<RespType> strlen(String key) async {
+  Future<Object> strlen(String key) async {
     return tier0.execute(['STRLEN', key]);
   }
 
   ///  ------------------------------   Hash  ------------------------------
 
   /// hsetnx
-  Future<RespType> hsetnx(String key, String field, Object value) async {
+  Future<Object> hsetnx(String key, String field, Object value) async {
     return tier0.execute(['HSETNX', key, field, value]);
   }
 
   /// hmget
-  Future<RespType> hmget(String key, List<String> fields) async {
+  Future<Object> hmget(String key, List<String> fields) async {
     return tier0.execute(['HMGET', key, ...fields]);
   }
 
   /// hdel
-  Future<RespType> hdel(String key, List<String> fields) async {
+  Future<Object> hdel(String key, List<String> fields) async {
     return tier0.execute(['HDEL', key, ...fields]);
   }
 
   /// hexists
-  Future<RespType> hexists(String key, String field) async {
+  Future<Object> hexists(String key, String field) async {
     return tier0.execute(['HEXISTS', key, field]);
   }
 
   /// hget
-  Future<RespType> hget(String key, String field) async {
+  Future<Object> hget(String key, String field) async {
     return tier0.execute(['HGET', key, field]);
   }
 
   /// hgetall
-  Future<RespType> hgetall(String key) async {
+  Future<Object> hgetall(String key) async {
     return tier0.execute([
       'HGETALL',
       key,
@@ -226,22 +226,22 @@ class RespCommandsTier1 {
   }
 
   /// hkeys
-  Future<RespType> hkeys(String key) async {
+  Future<Object> hkeys(String key) async {
     return tier0.execute(['HKEYS', key]);
   }
 
   /// hlen
-  Future<RespType> hlen(String key) async {
+  Future<Object> hlen(String key) async {
     return tier0.execute(['HLEN', key]);
   }
 
   /// hset
-  Future<RespType> hset(String key, String field, Object value) async {
+  Future<Object> hset(String key, String field, Object value) async {
     return tier0.execute(['HSET', key, field, value]);
   }
 
   /// hmset
-  Future<RespType> hmset(String key, Map<Object, Object> keysAndValues) async {
+  Future<Object> hmset(String key, Map<Object, Object> keysAndValues) async {
     return tier0.execute([
       'HMSET',
       key,
@@ -250,7 +250,7 @@ class RespCommandsTier1 {
   }
 
   /// hscan
-  Future<RespType> hscan(String key, int cursor,
+  Future<Object> hscan(String key, int cursor,
       {String? pattern, int? count}) async {
     return tier0.execute([
       'HSCAN',
@@ -262,123 +262,123 @@ class RespCommandsTier1 {
   }
 
   /// hvals
-  Future<RespType> hvals(String key) async {
+  Future<Object> hvals(String key) async {
     return tier0.execute(['HVALS', key]);
   }
 
   ///  ------------------------------   List  ------------------------------
 
   /// blpop
-  Future<RespType> blpop(List<String> keys, int timeout) async {
+  Future<Object> blpop(List<String> keys, int timeout) async {
     return tier0.execute(['BLPOP', ...keys, timeout]);
   }
 
   /// brpop
-  Future<RespType> brpop(List<String> keys, int timeout) async {
+  Future<Object> brpop(List<String> keys, int timeout) async {
     return tier0.execute(['BRPOP', ...keys, timeout]);
   }
 
   /// brpoplpush
-  Future<RespType> brpoplpush(
+  Future<Object> brpoplpush(
       String source, String destination, int timeout) async {
     return tier0.execute(['BRPOPLPUSH', source, destination, timeout]);
   }
 
   /// lindex
-  Future<RespType> lindex(String key, int index) async {
+  Future<Object> lindex(String key, int index) async {
     return tier0.execute(['LINDEX', key, index]);
   }
 
   /// linsert
-  Future<RespType> linsert(
+  Future<Object> linsert(
       String key, InsertMode insertMode, Object pivot, Object value) async {
     return tier0.execute(['LINSERT', key, insertMode._value, pivot, value]);
   }
 
   /// llen
-  Future<RespType> llen(String key) async {
+  Future<Object> llen(String key) async {
     return tier0.execute(['LLEN', key]);
   }
 
   /// lpop
-  Future<RespType> lpop(String key) async {
+  Future<Object> lpop(String key) async {
     return tier0.execute(['LPOP', key]);
   }
 
   /// lpush
-  Future<RespType> lpush(String key, List<Object> values) async {
+  Future<Object> lpush(String key, List<Object> values) async {
     return tier0.execute(['LPUSH', key, ...values]);
   }
 
   /// lpushx
-  Future<RespType> lpushx(String key, List<Object> values) async {
+  Future<Object> lpushx(String key, List<Object> values) async {
     return tier0.execute(['LPUSHX', key, ...values]);
   }
 
   /// lrange
-  Future<RespType> lrange(String key, int start, int stop) async {
+  Future<Object> lrange(String key, int start, int stop) async {
     return tier0.execute(['LRANGE', key, start, stop]);
   }
 
   /// lrem
-  Future<RespType> lrem(String key, int count, Object value) async {
+  Future<Object> lrem(String key, int count, Object value) async {
     return tier0.execute(['LREM', key, count, value]);
   }
 
   /// lset
-  Future<RespType> lset(String key, int index, Object value) async {
+  Future<Object> lset(String key, int index, Object value) async {
     return tier0.execute(['LSET', key, index, value]);
   }
 
   /// ltrim
-  Future<RespType> ltrim(String key, int start, int stop) async {
+  Future<Object> ltrim(String key, int start, int stop) async {
     return tier0.execute(['LTRIM', key, start, stop]);
   }
 
   /// rpop
-  Future<RespType> rpop(String key) async {
+  Future<Object> rpop(String key) async {
     return tier0.execute(['RPOP', key]);
   }
 
   /// rpoplpush
-  Future<RespType> rpoplpush(String source, String destination) async {
+  Future<Object> rpoplpush(String source, String destination) async {
     return tier0.execute(['RPOPLPUSH', source, destination]);
   }
 
   /// rpush
-  Future<RespType> rpush(String key, List<Object> values) async {
+  Future<Object> rpush(String key, List<Object> values) async {
     return tier0.execute(['RPUSH', key, ...values]);
   }
 
   /// rpushx
-  Future<RespType> rpushx(String key, List<Object> values) async {
+  Future<Object> rpushx(String key, List<Object> values) async {
     return tier0.execute(['RPUSHX', key, ...values]);
   }
 
   ///  ------------------------------   Set  ------------------------------
 
   /// sadd
-  Future<RespType> sadd(String key, List<Object> values) async {
+  Future<Object> sadd(String key, List<Object> values) async {
     return tier0.execute(['SADD', key, ...values]);
   }
 
   /// scard
-  Future<RespType> scard(String key) async {
+  Future<Object> scard(String key) async {
     return tier0.execute(['SCARD', key]);
   }
 
   /// smembers
-  Future<RespType> smembers(String key) async {
+  Future<Object> smembers(String key) async {
     return tier0.execute(['SMEMBERS', key]);
   }
 
   /// srem
-  Future<RespType> srem(String key, List<Object> members) async {
+  Future<Object> srem(String key, List<Object> members) async {
     return tier0.execute(['SREM', key, ...members]);
   }
 
   /// sscan
-  Future<RespType> sscan(String key, int cursor,
+  Future<Object> sscan(String key, int cursor,
       {String? pattern, int? count}) async {
     return tier0.execute([
       'SSCAN',
@@ -392,7 +392,7 @@ class RespCommandsTier1 {
   ///  ------------------------------   SortedSet  ------------------------------
 
   /// zadd
-  Future<RespType> zadd(String key, Map<Object, double> values) async {
+  Future<Object> zadd(String key, Map<Object, double> values) async {
     List<Object> params = ['ZADD', key];
 
     values.forEach((member, score) {
@@ -404,22 +404,22 @@ class RespCommandsTier1 {
   }
 
   /// zcard
-  Future<RespType> zcard(String key) async {
+  Future<Object> zcard(String key) async {
     return tier0.execute(['ZCARD', key]);
   }
 
   /// zrange
-  Future<RespType> zrange(String key, int start, int stop) async {
+  Future<Object> zrange(String key, int start, int stop) async {
     return tier0.execute(['ZRANGE', key, start, stop, 'WITHSCORES']);
   }
 
   /// zrem
-  Future<RespType> zrem(String key, List<Object> members) async {
+  Future<Object> zrem(String key, List<Object> members) async {
     return tier0.execute(['ZREM', key, ...members]);
   }
 
   /// zscan
-  Future<RespType> zscan(String key, int cursor,
+  Future<Object> zscan(String key, int cursor,
       {String? pattern, int? count}) async {
     return tier0.execute([
       'ZSCAN',
@@ -433,13 +433,13 @@ class RespCommandsTier1 {
   ///  ------------------------------   HyperLogLog  ------------------------------
   ///  ------------------------------   Geo  ------------------------------
   /// geoAdd
-  Future<RespType> geoAdd(
+  Future<Object> geoAdd(
       String key, double longitude, double latitude, String member) async {
     return tier0.execute(['GEOADD', key, longitude, latitude, member]);
   }
 
   /// geoDist
-  Future<RespType> geoDist(
+  Future<Object> geoDist(
     String key,
     String member1,
     String member2,
@@ -455,61 +455,61 @@ class RespCommandsTier1 {
   }
 
   /// geoHash
-  Future<RespType> geoHash(String key, List<Object> members) async {
+  Future<Object> geoHash(String key, List<Object> members) async {
     return tier0.execute(['GEOHASH', key, ...members]);
   }
 
   /// geoPos
-  Future<RespType> geoPos(String key, List<Object> members) async {
+  Future<Object> geoPos(String key, List<Object> members) async {
     return tier0.execute(['GEOPOS', key, ...members]);
   }
 
   ///  ------------------------------   PubSub  ------------------------------
 
   /// psubscribe
-  Stream<RespType> psubscribe(List<String> pattern) {
+  Stream<Object> psubscribe(List<String> pattern) {
     return tier0.psubscribe(pattern);
   }
 
   /// subscribe
-  Stream<RespType> subscribe(List<String> channels) {
+  Stream<Object> subscribe(List<String> channels) {
     return tier0.subscribe(channels);
   }
 
   /// publish
-  Future<RespType> publish(String channel, Object message) async {
+  Future<Object> publish(String channel, Object message) async {
     return tier0.execute(['PUBLISH', channel, message]);
   }
 
   /// unsubscribe
-  Future<RespType> unsubscribe(Iterable<String> channels) async {
+  Future<Object> unsubscribe(Iterable<String> channels) async {
     return tier0.execute(['UNSUBSCRIBE', ...channels]);
   }
 
   ///  ------------------------------   transactions  ------------------------------
 
   /// discard
-  Future<RespType> discard() async {
+  Future<Object> discard() async {
     return tier0.execute(['DISCARD']);
   }
 
   /// exec
-  Future<RespType> exec() async {
+  Future<Object> exec() async {
     return tier0.execute(['EXEC']);
   }
 
   /// multi
-  Future<RespType> multi() async {
+  Future<Object> multi() async {
     return tier0.execute(['MULTI']);
   }
 
   /// unwatch
-  Future<RespType> unwatch() async {
+  Future<Object> unwatch() async {
     return tier0.execute(['UNWATCH']);
   }
 
   /// watch
-  Future<RespType> watch(List<String> keys) async {
+  Future<Object> watch(List<String> keys) async {
     return tier0.execute(['WATCH', ...keys]);
   }
 
@@ -518,29 +518,35 @@ class RespCommandsTier1 {
   ///  ------------------------------   connection  ------------------------------
 
   /// auth
-  Future<RespType> auth(String password) async {
+  Future<Object> auth(String password) async {
     return tier0.execute(['AUTH', password]);
   }
 
   /// ping
-  Future<RespType> ping() async {
+  Future<Object> ping() async {
     return tier0.execute(['PING']);
   }
 
   /// select
-  Future<RespType> select(int index) async {
+  Future<Object> select(int index) async {
     return tier0.execute(['SELECT', index]);
+  }
+
+  /// hello
+  Future<Object> hello(int protover) async {
+    // print("tier0.client.respType: ${tier0.client.respType}");
+    return tier0.execute(['HELLO', protover]);
   }
 
   ///  ------------------------------   server  ------------------------------
 
   /// clientList
-  Future<RespType> clientList() async {
+  Future<Object> clientList() async {
     return tier0.execute(['CLIENT', 'LIST']);
   }
 
   /// info
-  Future<RespType> info(String? section) async {
+  Future<Object> info(String? section) async {
     return tier0.execute([
       'INFO',
       if (section != null) section,
@@ -548,12 +554,12 @@ class RespCommandsTier1 {
   }
 
   /// dbsize
-  Future<RespType> dbsize() async {
+  Future<Object> dbsize() async {
     return tier0.execute(['DBSIZE']);
   }
 
   /// flushAll
-  Future<RespType> flushAll({bool? doAsync}) async {
+  Future<Object> flushAll({bool? doAsync}) async {
     return tier0.execute([
       'FLUSHALL',
       if (doAsync != null) doAsync ? 'ASYNC' : 'SYNC',
@@ -561,7 +567,7 @@ class RespCommandsTier1 {
   }
 
   /// flushDb
-  Future<RespType> flushDb({bool? doAsync}) async {
+  Future<Object> flushDb({bool? doAsync}) async {
     return tier0.execute([
       'FLUSHDB',
       if (doAsync != null) doAsync ? 'ASYNC' : 'SYNC',
@@ -569,7 +575,7 @@ class RespCommandsTier1 {
   }
 
   /// slowlogGet
-  Future<RespType> slowlogGet(int? count) async {
+  Future<Object> slowlogGet(int? count) async {
     return tier0.execute([
       'SLOWLOG',
       'GET',
@@ -578,19 +584,19 @@ class RespCommandsTier1 {
   }
 
   /// slowlogLen
-  Future<RespType> slowlogLen() async {
+  Future<Object> slowlogLen() async {
     return tier0.execute(['SLOWLOG', 'LEN']);
   }
 
   /// slowlogReset
-  Future<RespType> slowlogReset() async {
+  Future<Object> slowlogReset() async {
     return tier0.execute(['SLOWLOG', 'RESET']);
   }
 
   ///  ------------------------------   json  ------------------------------
 
   /// jsonArrAppend
-  Future<RespType> jsonArrAppend({
+  Future<Object> jsonArrAppend({
     required String key,
     String path = '\$',
     required Object value,
@@ -604,7 +610,7 @@ class RespCommandsTier1 {
   }
 
   /// jsonArrIndex
-  Future<RespType> jsonArrIndex({
+  Future<Object> jsonArrIndex({
     required String key,
     String path = '\$',
     required Object value,
@@ -622,7 +628,7 @@ class RespCommandsTier1 {
   }
 
   /// jsonArrInsert
-  Future<RespType> jsonArrInsert({
+  Future<Object> jsonArrInsert({
     required String key,
     String path = '\$',
     int? index = 0,
@@ -638,7 +644,7 @@ class RespCommandsTier1 {
   }
 
   /// jsonArrLen
-  Future<RespType> jsonArrLen({
+  Future<Object> jsonArrLen({
     required String key,
     String path = '\$',
   }) async {
@@ -650,7 +656,7 @@ class RespCommandsTier1 {
   }
 
   /// jsonArrPop
-  Future<RespType> jsonArrPop({
+  Future<Object> jsonArrPop({
     required String key,
     String path = '\$',
     index = 0,
@@ -664,7 +670,7 @@ class RespCommandsTier1 {
   }
 
   /// jsonArrTrim
-  Future<RespType> jsonArrTrim({
+  Future<Object> jsonArrTrim({
     required String key,
     String path = '\$',
     required int start,
@@ -680,7 +686,7 @@ class RespCommandsTier1 {
   }
 
   /// jsonClear
-  Future<RespType> jsonClear({
+  Future<Object> jsonClear({
     required String key,
     String path = '\$',
   }) async {
@@ -692,17 +698,17 @@ class RespCommandsTier1 {
   }
 
   /// jsonDebug
-  Future<RespType> jsonDebug() async {
+  Future<Object> jsonDebug() async {
     return tier0.execute(['JSON.DEBUG']);
   }
 
   /// jsonDebugHelp
-  Future<RespType> jsonDebugHelp() async {
+  Future<Object> jsonDebugHelp() async {
     return tier0.execute(['JSON.DEBUG HELP']);
   }
 
   /// jsonDebugMemory
-  Future<RespType> jsonDebugMemory({
+  Future<Object> jsonDebugMemory({
     required String key,
     String path = '\$',
   }) async {
@@ -714,7 +720,7 @@ class RespCommandsTier1 {
   }
 
   /// jsonDel
-  Future<RespType> jsonDel({required String key, String path = '\$'}) async {
+  Future<Object> jsonDel({required String key, String path = '\$'}) async {
     return tier0.execute([
       'JSON.DEL',
       '$key',
@@ -723,7 +729,7 @@ class RespCommandsTier1 {
   }
 
   /// jsonForget
-  Future<RespType> jsonForget({
+  Future<Object> jsonForget({
     required String key,
     String path = '\$',
   }) async {
@@ -735,12 +741,12 @@ class RespCommandsTier1 {
   }
 
   /// jsonGet
-  Future<RespType> jsonGet({required String key, String path = '\$'}) async {
+  Future<Object> jsonGet({required String key, String path = '\$'}) async {
     return tier0.execute(['JSON.GET', '$key', '$path']);
   }
 
   /// jsonMerge
-  Future<RespType> jsonMerge({
+  Future<Object> jsonMerge({
     required String key,
     String path = '\$',
     required Object value,
@@ -754,13 +760,13 @@ class RespCommandsTier1 {
   }
 
   /// jsonMget
-  Future<RespType> jsonMget(
+  Future<Object> jsonMget(
       {required List<String> keys, String path = '\$'}) async {
     return tier0.execute(['JSON.MGET', ...keys, '$path']);
   }
 
   /// jsonMset
-  Future<RespType> jsonMset({
+  Future<Object> jsonMset({
     required String key,
     String path = '\$',
     required Object value,
@@ -769,7 +775,7 @@ class RespCommandsTier1 {
   }
 
   /// jsonNumincrby
-  Future<RespType> jsonNumincrby({
+  Future<Object> jsonNumincrby({
     required String key,
     String path = '\$',
     required Object value,
@@ -778,7 +784,7 @@ class RespCommandsTier1 {
   }
 
   /// jsonNummultby
-  Future<RespType> jsonNummultby({
+  Future<Object> jsonNummultby({
     required String key,
     String path = '\$',
     required Object value,
@@ -787,7 +793,7 @@ class RespCommandsTier1 {
   }
 
   /// jsonObjkeys
-  Future<RespType> jsonObjkeys({
+  Future<Object> jsonObjkeys({
     required String key,
     String path = '\$',
   }) async {
@@ -795,7 +801,7 @@ class RespCommandsTier1 {
   }
 
   /// jsonObjlen
-  Future<RespType> jsonObjlen({
+  Future<Object> jsonObjlen({
     required String key,
     String path = '\$',
   }) async {
@@ -803,7 +809,7 @@ class RespCommandsTier1 {
   }
 
   /// jsonResp
-  Future<RespType> jsonResp({
+  Future<Object> jsonResp({
     required String key,
     String path = '\$',
   }) async {
@@ -815,7 +821,7 @@ class RespCommandsTier1 {
   /// # The XX option is used, set when the specified path exists, not set if it does not and returns nil
   /// # 使用了NX选项，当指定的路径不存在时则设置，如果已经存在则不设置并返回nil
   /// # 使用了XX选项，当指定的路径存在时则设置，如果不存在则不设置并返回nil
-  Future<RespType> jsonSet({
+  Future<Object> jsonSet({
     required String key,
     String path = '\$',
     required String value,
@@ -833,7 +839,7 @@ class RespCommandsTier1 {
   }
 
   /// jsonStrappend
-  Future<RespType> jsonStrappend({
+  Future<Object> jsonStrappend({
     required String key,
     String path = '\$',
     required Object value,
@@ -842,7 +848,7 @@ class RespCommandsTier1 {
   }
 
   /// jsonStrlen
-  Future<RespType> jsonStrlen({
+  Future<Object> jsonStrlen({
     required String key,
     String path = '\$',
   }) async {
@@ -850,7 +856,7 @@ class RespCommandsTier1 {
   }
 
   /// jsonToggle
-  Future<RespType> jsonToggle({
+  Future<Object> jsonToggle({
     required String key,
     String path = '\$',
   }) async {
@@ -858,7 +864,7 @@ class RespCommandsTier1 {
   }
 
   /// jsonType
-  Future<RespType> jsonType({
+  Future<Object> jsonType({
     required String key,
     String path = '\$',
   }) async {
@@ -868,7 +874,7 @@ class RespCommandsTier1 {
   ///  ------------------------------   Commands  ------------------------------
 
   /// moduleList
-  Future<RespType> moduleList() async {
+  Future<Object> moduleList() async {
     return tier0.execute(['MODULE', 'LIST']);
   }
 

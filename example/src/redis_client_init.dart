@@ -16,7 +16,6 @@ Future<RedisClient> initRedisClient() async {
   return client;
 }
 
-// 辅助函数，用于关闭Redis客户端连接，释放资源
 Future<void> closeRedisClient(RedisClient client) async {
   try {
     await client.close();

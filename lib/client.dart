@@ -1,26 +1,15 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:redis_dart_link/socket_options.dart';
+import 'package:redis_dart_link/src/client.dart';
+import 'package:redis_dart_link/src/commands.dart';
+import 'package:redis_dart_link/src/server.dart';
+
 import 'command_options.dart';
 import 'exception.dart';
 import 'logger.dart';
-import 'model/client_list.dart';
-import 'model/execute.dart';
-import 'model/geo_pos.dart';
-import 'model/hscan.dart';
-import 'model/info.dart';
-import 'model/module_list.dart';
-import 'model/psubscribe.dart';
-import 'model/scan.dart';
-import 'model/set.dart';
-import 'model/slowlog_get.dart';
-import 'model/sscan.dart';
-import 'model/subscribe.dart';
-import 'model/zscan.dart';
-import 'socket_options.dart';
-import 'src/client.dart';
-import 'src/commands.dart';
-import 'src/server.dart';
+import 'model.dart';
 
 /// {@template redis_client}
 /// A client for interacting with a Redis server.
@@ -109,6 +98,17 @@ class RedisClient {
       await _login();
       // 设置登录状态
       _isConnected = true;
+
+      // 判断出当前版本，根据当前版本来判断是否需要调整 resp 协议版本
+      Object redisServerInfoObject =
+          await RespCommandsTier1(_client!).info('server');
+      Info redisInfo = Info.fromResult(redisServerInfoObject);
+      int majorVersion = getMajorVersion(redisInfo.server.redisVersion);
+      // 设置 resp 协议版本 优先使用resp2
+      if (majorVersion > 5) {
+        _client?.setRespType(2);
+        await RespCommandsTier1(_client!).hello(2);
+      }
 
       // 进行数据库选择
       await RespCommandsTier1(_client!).select(_socketOptions.db);
@@ -299,13 +299,11 @@ class RedisClient {
     } catch (error, stackTrace) {
       // 如果错误是SocketException 则需要尝试重连
       if (error is SocketException) {
-        print("尝试重新连接1");
         await connect();
       }
 
       // 如果错误是TimeoutException 则需要尝试重连
       if (error is TimeoutException) {
-        print("尝试重新连接2");
         await connect();
       }
 
@@ -345,67 +343,85 @@ class RedisClient {
     List<Object> commandList =
         str.split(" ").where((item) => item.trim().isNotEmpty).toList();
 
-    RespType<dynamic> result = await _runWithRetryNew(() async {
+    Object result = await _runWithRetryNew(() async {
       return (await RespCommandsTier1(_client!).execute(commandList));
     });
 
-    return Execute.fromResult(result);
+    if (result is RespType2<dynamic>) {
+      return Execute.fromResult(result);
+    }
+
+    /// 格式化展示
+    return Execute.fromResultResp3(result as RespType3<dynamic>);
   }
 
   ///  ------------------------------   Key  ------------------------------
 
   /// del
   Future<int> del(List<String> keys) async {
-    return await _runWithRetryNew(() async {
-      return (await RespCommandsTier1(_client!).del(keys)).toInteger().payload;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).del(keys));
     });
+
+    if (result is RespType2<dynamic>) {
+      return result.toInteger().payload;
+    }
+
+    return (result as RespType3<dynamic>).toInteger().payload;
   }
 
   /// exists
   Future<int> exists(List<String> keys) async {
-    return await _runWithRetryNew(() async {
-      return (await RespCommandsTier1(_client!).exists(keys))
-          .toInteger()
-          .payload;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).exists(keys));
     });
+
+    if (result is RespType2<dynamic>) {
+      return result.toInteger().payload;
+    }
+
+    return (result as RespType3<dynamic>).toInteger().payload;
   }
 
   /// pexpire
   Future<bool> pexpire(String key, Duration timeout) async {
-    return await _runWithRetryNew(() async {
-      return (await RespCommandsTier1(_client!).pexpire(key, timeout))
-              .toInteger()
-              .payload ==
-          1;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).pexpire(key, timeout));
     });
+
+    if (result is RespType2<dynamic>) {
+      return result.toInteger().payload == 1;
+    }
+
+    return (result as RespType3<dynamic>).toInteger().payload == 1;
   }
 
   /// expire
   Future<bool> expire(String key, Duration timeout) async {
-    return await _runWithRetryNew(() async {
-      return (await RespCommandsTier1(_client!).expire(key, timeout))
-              .toInteger()
-              .payload ==
-          1;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).expire(key, timeout));
     });
+
+    if (result is RespType2<dynamic>) {
+      return result.toInteger().payload == 1;
+    }
+
+    return (result as RespType3<dynamic>).toInteger().payload == 1;
   }
 
   /// rename
   Future<void> rename(String keyName, String newKeyName) async {
     return await _runWithRetryNew(() async {
-      (await RespCommandsTier1(_client!).rename(keyName, newKeyName))
-          .toSimpleString();
+      (await RespCommandsTier1(_client!).rename(keyName, newKeyName));
       return null;
     });
   }
 
   /// scan
   Future<Scan> scan(int cursor, {String? pattern, int? count}) async {
-    List<RespType<dynamic>>? result = await _runWithRetryNew(() async {
+    Object result = await _runWithRetryNew(() async {
       return (await RespCommandsTier1(_client!)
-              .scan(cursor, pattern: pattern, count: count))
-          .toArray()
-          .payload;
+          .scan(cursor, pattern: pattern, count: count));
     });
 
     return Scan.fromResult(result);
@@ -413,76 +429,107 @@ class RedisClient {
 
   /// ttl
   Future<int> ttl(String key) async {
-    return await _runWithRetryNew(() async {
-      return (await RespCommandsTier1(_client!).ttl(key)).toInteger().payload;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).ttl(key));
     });
+
+    if (result is RespType2<dynamic>) {
+      return result.toInteger().payload;
+    }
+
+    return (result as RespType3<dynamic>).toInteger().payload;
   }
 
   /// type
   Future<String> type(String key) async {
-    return await _runWithRetryNew(() async {
-      return (await RespCommandsTier1(_client!).type(key))
-          .toSimpleString()
-          .payload;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).type(key));
     });
+
+    if (result is RespType2<dynamic>) {
+      return result.toSimpleString().payload;
+    }
+
+    return (result as RespType3<dynamic>).toSimpleString().payload;
   }
 
   ///  ------------------------------   String  ------------------------------
 
   /// decr
   Future<int> decr(String key) async {
-    return await _runWithRetryNew(() async {
-      return (await RespCommandsTier1(_client!).decr(key)).toInteger().payload;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).decr(key));
     });
+
+    if (result is RespType2<dynamic>) {
+      return result.toInteger().payload;
+    }
+
+    return (result as RespType3<dynamic>).toInteger().payload;
   }
 
   /// decrby
   Future<int> decrby(String key, int increment) async {
-    return await _runWithRetryNew(() async {
-      return (await RespCommandsTier1(_client!).decrby(key, increment))
-          .toInteger()
-          .payload;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).decrby(key, increment));
     });
+
+    if (result is RespType2<dynamic>) {
+      return result.toInteger().payload;
+    }
+
+    return (result as RespType3<dynamic>).toInteger().payload;
   }
 
   /// get
   Future<String?> get(String key) async {
-    return await _runWithRetryNew(() async {
-      return (await RespCommandsTier1(_client!).get(key))
-          .toBulkString()
-          .payload;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).get(key));
     });
+
+    if (result is RespType2<dynamic>) {
+      return result.toSimpleString().payload;
+    }
+
+    return (result as RespType3<dynamic>).toSimpleString().payload;
   }
 
   /// incr
   Future<int> incr(String key) async {
-    return await _runWithRetryNew(() async {
-      return (await RespCommandsTier1(_client!).incr(key)).toInteger().payload;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).incr(key));
     });
+
+    if (result is RespType2<dynamic>) {
+      return result.toInteger().payload;
+    }
+
+    return (result as RespType3<dynamic>).toInteger().payload;
   }
 
   /// incrby
   Future<int> incrby(String key, int increment) async {
-    return await _runWithRetryNew(() async {
-      return (await RespCommandsTier1(_client!).incrby(key, increment))
-          .toInteger()
-          .payload;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).incrby(key, increment));
     });
+
+    if (result is RespType2<dynamic>) {
+      return result.toInteger().payload;
+    }
+
+    return (result as RespType3<dynamic>).toInteger().payload;
   }
 
   /// set
-  Future<Set> set(
-    Object key,
-    Object value, {
-    Duration? ex,
-    DateTime? exat,
-    Duration? px,
-    DateTime? pxat,
-    bool nx = false,
-    bool xx = false,
-    bool get = false,
-  }) async {
-    RespType<dynamic> result = await _runWithRetryNew(() async {
+  Future<Set> set(Object key, Object value,
+      {Duration? ex,
+      DateTime? exat,
+      Duration? px,
+      DateTime? pxat,
+      bool nx = false,
+      bool xx = false,
+      bool get = false}) async {
+    Object result = await _runWithRetryNew(() async {
       return (await RespCommandsTier1(_client!).set(
         key,
         value,
@@ -501,97 +548,149 @@ class RedisClient {
 
   /// strlen
   Future<int> strlen(String key) async {
-    return await _runWithRetryNew(() async {
-      return (await RespCommandsTier1(_client!).strlen(key))
-          .toInteger()
-          .payload;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).strlen(key));
     });
+
+    if (result is RespType2<dynamic>) {
+      return result.toInteger().payload;
+    }
+
+    return (result as RespType3<dynamic>).toInteger().payload;
   }
 
   ///  ------------------------------   Hash  ------------------------------
 
   /// hdel
   Future<int> hdel(String key, List<String> fields) async {
-    return await _runWithRetryNew(() async {
-      return (await RespCommandsTier1(_client!).hdel(key, fields))
-          .toInteger()
-          .payload;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).hdel(key, fields));
     });
+
+    if (result is RespType2<dynamic>) {
+      return result.toInteger().payload;
+    }
+
+    return (result as RespType3<dynamic>).toInteger().payload;
   }
 
   /// hexists
   Future<bool> hexists(String key, String field) async {
-    return await _runWithRetryNew(() async {
-      return (await RespCommandsTier1(_client!).hexists(key, field))
-              .toInteger()
-              .payload ==
-          1;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).hexists(key, field));
     });
+
+    if (result is RespType2<dynamic>) {
+      return result.toInteger().payload == 1;
+    }
+
+    return (result as RespType3<dynamic>).toInteger().payload == 1;
   }
 
   /// hget
   Future<String?> hget(String key, String field) async {
-    return await _runWithRetryNew(() async {
-      return (await RespCommandsTier1(_client!).hget(key, field))
-          .toBulkString()
-          .payload;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).hget(key, field));
     });
+
+    if (result is RespType2<dynamic>) {
+      return result.toSimpleString().payload;
+    }
+
+    return (result as RespType3<dynamic>).toSimpleString().payload;
   }
 
   /// hgetall
   Future<Map<String, String?>> hgetall(String key) async {
-    return await _runWithRetryNew(() async {
-      final result =
-          (await RespCommandsTier1(_client!).hgetall(key)).toArray().payload;
-      final map = <String, String?>{};
-      if (result != null) {
-        for (var i = 0; i < result.length; i += 2) {
-          final key = result[i].toBulkString().payload;
-          final value = result[i + 1].toBulkString().payload;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).hgetall(key));
+    });
+
+    final map = <String, String?>{};
+
+    if (result is RespType2<dynamic>) {
+      final result1 = result.toArray().payload;
+      if (result1 != null) {
+        for (var i = 0; i < result1.length; i += 2) {
+          final key = result1[i].toBulkString().payload;
+          final value = result1[i + 1].toBulkString().payload;
           if (key != null) {
             map[key] = value;
           }
         }
       }
       return map;
-    });
+    }
+
+    final result1 = (result as RespType3<dynamic>).toArray().payload;
+    if (result1 != null) {
+      for (var i = 0; i < result1.length; i += 2) {
+        final key = result1[i].toBulkString().payload;
+        final value = result1[i + 1].toBulkString().payload;
+        if (key != null) {
+          map[key] = value;
+        }
+      }
+    }
+
+    return map;
   }
 
   /// hkeys
   Future<List<String?>> hkeys(String key) async {
-    return await _runWithRetryNew(() async {
-      final result =
-          (await RespCommandsTier1(_client!).hkeys(key)).toArray().payload;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).hkeys(key));
+    });
 
-      if (result != null) {
-        return result
+    if (result is RespType2<dynamic>) {
+      final result1 = result.toArray().payload;
+      if (result1 != null) {
+        return result1
             .map((e) => e.toBulkString().payload)
             .toList(growable: false);
       }
       return [];
-    });
+    }
+
+    final result1 = (result as RespType3<dynamic>).toArray().payload;
+    if (result1 != null) {
+      return result1
+          .map((e) => e.toBulkString().payload)
+          .toList(growable: false);
+    }
+    return [];
   }
 
   /// hlen
   Future<int> hlen(String key) async {
-    return await _runWithRetryNew(() async {
-      return (await RespCommandsTier1(_client!).hlen(key)).toInteger().payload;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).hlen(key));
     });
+
+    if (result is RespType2<dynamic>) {
+      return result.toInteger().payload;
+    }
+
+    return (result as RespType3<dynamic>).toInteger().payload;
   }
 
   /// hset
   Future<int> hset(String key, String field, Object value) async {
-    return await _runWithRetryNew(() async {
-      return (await RespCommandsTier1(_client!).hset(key, field, value))
-          .toInteger()
-          .payload;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).hset(key, field, value));
     });
+
+    if (result is RespType2<dynamic>) {
+      return result.toInteger().payload;
+    }
+
+    return (result as RespType3<dynamic>).toInteger().payload;
   }
 
   /// hmset
   Future<void> hmset(String key, Map<Object, Object> values) async {
     return await _runWithRetryNew(() async {
-      (await RespCommandsTier1(_client!).hmset(key, values)).toSimpleString();
+      (await RespCommandsTier1(_client!).hmset(key, values));
       return null;
     });
   }
@@ -599,11 +698,9 @@ class RedisClient {
   /// hscan
   Future<Hscan> hscan(String key, int cursor,
       {String? pattern, int? count}) async {
-    List<RespType<dynamic>>? result = await _runWithRetryNew(() async {
+    Object result = await _runWithRetryNew(() async {
       return (await RespCommandsTier1(_client!)
-              .hscan(key, cursor, pattern: pattern, count: count))
-          .toArray()
-          .payload;
+          .hscan(key, cursor, pattern: pattern, count: count));
     });
 
     return Hscan.fromResult(result);
@@ -611,60 +708,93 @@ class RedisClient {
 
   /// hvals
   Future<List<String?>> hvals(String key) async {
-    return await _runWithRetryNew(() async {
-      final result =
-          (await RespCommandsTier1(_client!).hvals(key)).toArray().payload;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).hvals(key));
+    });
 
-      if (result != null) {
-        return result
+    if (result is RespType2<dynamic>) {
+      final result1 = result.toArray().payload;
+      if (result1 != null) {
+        return result1
             .map((e) => e.toBulkString().payload)
             .toList(growable: false);
       }
       return [];
-    });
+    }
+
+    final result1 = (result as RespType3<dynamic>).toArray().payload;
+    if (result1 != null) {
+      return result1
+          .map((e) => e.toBulkString().payload)
+          .toList(growable: false);
+    }
+    return [];
   }
 
   ///  ------------------------------   List  ------------------------------
 
   /// llen
   Future<int> llen(String key) async {
-    return await _runWithRetryNew(() async {
-      return (await RespCommandsTier1(_client!).llen(key)).toInteger().payload;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).llen(key));
     });
+
+    if (result is RespType2<dynamic>) {
+      return result.toInteger().payload;
+    }
+
+    return (result as RespType3<dynamic>).toInteger().payload;
   }
 
   /// lpush
   Future<int> lpush(String key, List<Object> values) async {
-    return await _runWithRetryNew(() async {
-      return (await RespCommandsTier1(_client!).lpush(key, values))
-          .toInteger()
-          .payload;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).lpush(key, values));
     });
+
+    if (result is RespType2<dynamic>) {
+      return result.toInteger().payload;
+    }
+
+    return (result as RespType3<dynamic>).toInteger().payload;
   }
 
   /// lrange
   Future<List<String?>> lrange(String key, int start, int stop) async {
-    return await _runWithRetryNew(() async {
-      final result =
-          (await RespCommandsTier1(_client!).lrange(key, start, stop))
-              .toArray()
-              .payload;
-      if (result != null) {
-        return result
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).lrange(key, start, stop));
+    });
+
+    if (result is RespType2<dynamic>) {
+      final result1 = result.toArray().payload;
+      if (result1 != null) {
+        return result1
             .map((e) => e.toBulkString().payload)
             .toList(growable: false);
       }
       return [];
-    });
+    }
+
+    final result1 = (result as RespType3<dynamic>).toArray().payload;
+    if (result1 != null) {
+      return result1
+          .map((e) => e.toBulkString().payload)
+          .toList(growable: false);
+    }
+    return [];
   }
 
   /// lrem
   Future<int> lrem(String key, int count, Object value) async {
-    return await _runWithRetryNew(() async {
-      return (await RespCommandsTier1(_client!).lrem(key, count, value))
-          .toInteger()
-          .payload;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).lrem(key, count, value));
     });
+
+    if (result is RespType2<dynamic>) {
+      return result.toInteger().payload;
+    }
+
+    return (result as RespType3<dynamic>).toInteger().payload;
   }
 
   /// lset
@@ -677,62 +807,89 @@ class RedisClient {
 
   /// rpush
   Future<int> rpush(String key, List<Object> values) async {
-    return await _runWithRetryNew(() async {
-      return (await RespCommandsTier1(_client!).rpush(key, values))
-          .toInteger()
-          .payload;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).rpush(key, values));
     });
+
+    if (result is RespType2<dynamic>) {
+      return result.toInteger().payload;
+    }
+
+    return (result as RespType3<dynamic>).toInteger().payload;
   }
 
   ///  ------------------------------   Set  ------------------------------
 
   /// sadd
   Future<int> sadd(String key, List<Object> values) async {
-    return await _runWithRetryNew(() async {
-      return (await RespCommandsTier1(_client!).sadd(key, values))
-          .toInteger()
-          .payload;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).sadd(key, values));
     });
+
+    if (result is RespType2<dynamic>) {
+      return result.toInteger().payload;
+    }
+
+    return (result as RespType3<dynamic>).toInteger().payload;
   }
 
   /// scard
   Future<int> scard(String key) async {
-    return await _runWithRetryNew(() async {
-      return (await RespCommandsTier1(_client!).scard(key)).toInteger().payload;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).scard(key));
     });
+
+    if (result is RespType2<dynamic>) {
+      return result.toInteger().payload;
+    }
+
+    return (result as RespType3<dynamic>).toInteger().payload;
   }
 
   /// smembers
   Future<List<String?>> smembers(String key) async {
-    return await _runWithRetryNew(() async {
-      final result =
-          (await RespCommandsTier1(_client!).smembers(key)).toArray().payload;
-      if (result != null) {
-        return result
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).smembers(key));
+    });
+
+    if (result is RespType2<dynamic>) {
+      final result1 = result.toArray().payload;
+      if (result1 != null) {
+        return result1
             .map((e) => e.toBulkString().payload)
             .toList(growable: false);
       }
       return [];
-    });
+    }
+
+    final result1 = (result as RespType3<dynamic>).toArray().payload;
+    if (result1 != null) {
+      return result1
+          .map((e) => e.toBulkString().payload)
+          .toList(growable: false);
+    }
+    return [];
   }
 
   /// srem
   Future<int> srem(String key, List<Object> members) async {
-    return await _runWithRetryNew(() async {
-      return (await RespCommandsTier1(_client!).srem(key, members))
-          .toInteger()
-          .payload;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).srem(key, members));
     });
+
+    if (result is RespType2<dynamic>) {
+      return result.toInteger().payload;
+    }
+
+    return (result as RespType3<dynamic>).toInteger().payload;
   }
 
   /// sscan
   Future<Sscan> sscan(String key, int cursor,
       {String? pattern, int? count}) async {
-    List<RespType<dynamic>>? result = await _runWithRetryNew(() async {
+    Object result = await _runWithRetryNew(() async {
       return (await RespCommandsTier1(_client!)
-              .sscan(key, cursor, pattern: pattern, count: count))
-          .toArray()
-          .payload;
+          .sscan(key, cursor, pattern: pattern, count: count));
     });
 
     return Sscan.fromResult(result);
@@ -742,63 +899,92 @@ class RedisClient {
 
   /// zadd
   Future<int> zadd(String key, Map<Object, double> values) async {
-    return await _runWithRetryNew(() async {
-      return (await RespCommandsTier1(_client!).zadd(key, values))
-          .toInteger()
-          .payload;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).zadd(key, values));
     });
+
+    if (result is RespType2<dynamic>) {
+      return result.toInteger().payload;
+    }
+
+    return (result as RespType3<dynamic>).toInteger().payload;
   }
 
   /// zcard
   Future<int> zcard(String key) async {
-    return await _runWithRetryNew(() async {
-      return (await RespCommandsTier1(_client!).zcard(key)).toInteger().payload;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).zcard(key));
     });
+
+    if (result is RespType2<dynamic>) {
+      return result.toInteger().payload;
+    }
+
+    return (result as RespType3<dynamic>).toInteger().payload;
   }
 
   /// zrange
   Future<Map<String, double>> zrange(String key, int start, int stop) async {
-    return await _runWithRetryNew(() async {
-      final result =
-          (await RespCommandsTier1(_client!).zrange(key, start, stop))
-              .toArray()
-              .payload;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).zrange(key, start, stop));
+    });
 
-      if (result != null) {
-        final Map<String, double> memberScores = {};
+    final Map<String, double> memberScores = {};
 
-        for (int i = 0; i < result.length; i += 2) {
-          final member = result[i].toBulkString().payload;
-          final score = result[i + 1].toBulkString().payload;
-
-          if (member != null && score != null) {
-            memberScores[member] = double.parse(score);
-          }
-        }
-
+    if (result is RespType2<dynamic>) {
+      final result1 = result.toArray().payload;
+      if (result1 == null) {
         return memberScores;
       }
-      return {};
-    });
+
+      for (int i = 0; i < result1.length; i += 2) {
+        final member = result1[i].toBulkString().payload;
+        final score = result1[i + 1].toBulkString().payload;
+
+        if (member != null && score != null) {
+          memberScores[member] = double.parse(score);
+        }
+      }
+
+      return memberScores;
+    }
+
+    final result1 = (result as RespType3<dynamic>).toArray().payload;
+    if (result1 == null) {
+      return memberScores;
+    }
+
+    for (int i = 0; i < result1.length; i += 2) {
+      final member = result1[i].toBulkString().payload;
+      final score = result1[i + 1].toBulkString().payload;
+
+      if (member != null && score != null) {
+        memberScores[member] = double.parse(score);
+      }
+    }
+
+    return memberScores;
   }
 
   /// zrem
   Future<int> zrem(String key, List<Object> members) async {
-    return await _runWithRetryNew(() async {
-      return (await RespCommandsTier1(_client!).zrem(key, members))
-          .toInteger()
-          .payload;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).zrem(key, members));
     });
+
+    if (result is RespType2<dynamic>) {
+      return result.toInteger().payload;
+    }
+
+    return (result as RespType3<dynamic>).toInteger().payload;
   }
 
   /// zscan
   Future<Zscan> zscan(String key, int cursor,
       {String? pattern, int? count}) async {
-    List<RespType<dynamic>>? result = await _runWithRetryNew(() async {
+    Object result = await _runWithRetryNew(() async {
       return (await RespCommandsTier1(_client!)
-              .zscan(key, cursor, pattern: pattern, count: count))
-          .toArray()
-          .payload;
+          .zscan(key, cursor, pattern: pattern, count: count));
     });
 
     return Zscan.fromResult(result);
@@ -809,47 +995,62 @@ class RedisClient {
   /// geoAdd
   Future<int> geoAdd(
       String key, double longitude, double latitude, String member) async {
-    return await _runWithRetryNew(() async {
+    Object result = await _runWithRetryNew(() async {
       return (await RespCommandsTier1(_client!)
-              .geoAdd(key, longitude, latitude, member))
-          .toInteger()
-          .payload;
+          .geoAdd(key, longitude, latitude, member));
     });
+
+    if (result is RespType2<dynamic>) {
+      return result.toInteger().payload;
+    }
+
+    return (result as RespType3<dynamic>).toInteger().payload;
   }
 
   /// geoDist
   Future<String?> geoDist(String key, String member1, String member2,
       [String? unit]) async {
-    return await _runWithRetryNew(() async {
+    Object result = await _runWithRetryNew(() async {
       return (await RespCommandsTier1(_client!)
-              .geoDist(key, member1, member2, unit))
-          .toBulkString()
-          .payload;
+          .geoDist(key, member1, member2, unit));
     });
+
+    if (result is RespType2<dynamic>) {
+      return result.toSimpleString().payload;
+    }
+
+    return (result as RespType3<dynamic>).toSimpleString().payload;
   }
 
   /// geoHash
   Future<List<String?>> geoHash(String key, List<Object> members) async {
-    return await _runWithRetryNew(() async {
-      final result = (await RespCommandsTier1(_client!).geoHash(key, members))
-          .toArray()
-          .payload;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).geoHash(key, members));
+    });
 
-      if (result != null) {
-        return result
+    if (result is RespType2<dynamic>) {
+      final result1 = result.toArray().payload;
+      if (result1 != null) {
+        return result1
             .map((e) => e.toBulkString().payload)
             .toList(growable: false);
       }
       return [];
-    });
+    }
+
+    final result1 = (result as RespType3<dynamic>).toArray().payload;
+    if (result1 != null) {
+      return result1
+          .map((e) => e.toBulkString().payload)
+          .toList(growable: false);
+    }
+    return [];
   }
 
   /// geoHash
   Future<GeoPos> geoPos(String key, List<Object> members) async {
-    List<RespType<dynamic>>? result = await _runWithRetryNew(() async {
-      return (await RespCommandsTier1(_client!).geoPos(key, members))
-          .toArray()
-          .payload;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).geoPos(key, members));
     });
 
     return GeoPos.fromResult(result);
@@ -859,62 +1060,64 @@ class RedisClient {
 
   /// psubscribe
   Stream<Psubscribe> psubscribe(List<String> pattern) {
-    Stream<RespType> stream = (RespCommandsTier1(_client!).psubscribe(pattern));
+    Stream<Object> stream = (RespCommandsTier1(_client!).psubscribe(pattern));
 
     return stream.map((resp) {
-      final result = resp.toArray().payload;
-      return Psubscribe.fromResult(result);
+      return Psubscribe.fromResult(resp);
     });
   }
 
   /// subscribe
   Stream<Subscribe> subscribe(List<String> channels) {
-    Stream<RespType> stream = (RespCommandsTier1(_client!).subscribe(channels));
+    Stream<Object> stream = (RespCommandsTier1(_client!).subscribe(channels));
 
     return stream.map((resp) {
-      final result = resp.toArray().payload;
-      return Subscribe.fromResult(result);
+      return Subscribe.fromResult(resp);
     });
   }
 
   /// publish
   Future<int> publish(String channel, Object message) async {
-    return await _runWithRetryNew(() async {
-      return (await RespCommandsTier1(_client!).publish(channel, message))
-          .toInteger()
-          .payload;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).publish(channel, message));
     });
+
+    if (result is RespType2<dynamic>) {
+      return result.toInteger().payload;
+    }
+
+    return (result as RespType3<dynamic>).toInteger().payload;
   }
 
   ///  ------------------------------   transactions  ------------------------------
 
   /// discard
   Future<void> discard() async {
-    (await RespCommandsTier1(_client!).discard()).toSimpleString().payload;
+    (await RespCommandsTier1(_client!).discard());
     return null;
   }
 
   /// exec
   Future<void> exec() async {
-    (await RespCommandsTier1(_client!).exec()).toArray().payload;
+    (await RespCommandsTier1(_client!).exec());
     return null;
   }
 
   /// multi
   Future<void> multi() async {
-    (await RespCommandsTier1(_client!).multi()).toSimpleString().payload;
+    (await RespCommandsTier1(_client!).multi());
     return null;
   }
 
   /// unwatch
   Future<void> unwatch() async {
-    (await RespCommandsTier1(_client!).unwatch()).toSimpleString().payload;
+    (await RespCommandsTier1(_client!).unwatch());
     return null;
   }
 
   /// watch
   Future<void> watch(List<String> keys) async {
-    (await RespCommandsTier1(_client!).watch(keys)).toSimpleString().payload;
+    (await RespCommandsTier1(_client!).watch(keys));
     return null;
   }
 
@@ -925,9 +1128,7 @@ class RedisClient {
   /// auth
   Future<void> auth(String password) async {
     return _runWithRetryNew(() async {
-      (await RespCommandsTier1(_client!).auth(password))
-          .toSimpleString()
-          .payload;
+      (await RespCommandsTier1(_client!).auth(password));
       return null;
     });
   }
@@ -935,7 +1136,7 @@ class RedisClient {
   /// ping
   Future<void> ping() async {
     return _runWithRetryNew(() async {
-      (await RespCommandsTier1(_client!).ping()).toSimpleString().payload;
+      (await RespCommandsTier1(_client!).ping());
       return null;
     });
   }
@@ -944,7 +1145,16 @@ class RedisClient {
   Future<void> select(int index) async {
     return await _runWithRetryNew(() async {
       _socketOptions.db = index;
-      (await RespCommandsTier1(_client!).select(index)).toSimpleString();
+      (await RespCommandsTier1(_client!).select(index));
+      return null;
+    });
+  }
+
+  /// hello
+  Future<void> hello(int protover) async {
+    return await _runWithRetryNew(() async {
+      (await RespCommandsTier1(_client!).select(protover));
+      _client?.setRespType(protover);
       return null;
     });
   }
@@ -953,17 +1163,8 @@ class RedisClient {
 
   /// clientList
   Future<ClientList> clientList() async {
-    List<String> result = await _runWithRetryNew(() async {
-      final bulkString = (await RespCommandsTier1(_client!).clientList())
-          .toBulkString()
-          .payload;
-      if (bulkString != null) {
-        return bulkString
-            .split('\n')
-            .where((e) => e.isNotEmpty)
-            .toList(growable: false);
-      }
-      return [];
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).clientList());
     });
 
     return ClientList.fromResult(result);
@@ -971,32 +1172,29 @@ class RedisClient {
 
   /// info
   Future<Info> info([String? section]) async {
-    List<String> result = await _runWithRetryNew(() async {
-      final bulkString = (await RespCommandsTier1(_client!).info(section))
-          .toBulkString()
-          .payload;
-      if (bulkString != null) {
-        return bulkString
-            .split('\n')
-            .where((e) => e.isNotEmpty)
-            .toList(growable: false);
-      }
-      return [];
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).info(section));
     });
     return Info.fromResult(result);
   }
 
   /// dbsize
   Future<int> dbsize() async {
-    return await _runWithRetryNew(() async {
-      return (await RespCommandsTier1(_client!).dbsize()).toInteger().payload;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).dbsize());
     });
+
+    if (result is RespType2<dynamic>) {
+      return result.toInteger().payload;
+    }
+
+    return (result as RespType3<dynamic>).toInteger().payload;
   }
 
   /// flushAll
   Future<void> flushAll({bool? doAsync}) async {
     return await _runWithRetryNew(() async {
-      (await RespCommandsTier1(_client!).flushAll()).toSimpleString();
+      (await RespCommandsTier1(_client!).flushAll());
       return null;
     });
   }
@@ -1004,17 +1202,15 @@ class RedisClient {
   /// flushDb
   Future<void> flushDb({bool? doAsync}) async {
     return await _runWithRetryNew(() async {
-      (await RespCommandsTier1(_client!).flushDb()).toSimpleString();
+      (await RespCommandsTier1(_client!).flushDb());
       return null;
     });
   }
 
   /// slowlogGet
   Future<SlowlogGet> slowlogGet({int? count}) async {
-    List<RespType<dynamic>>? result = await _runWithRetryNew(() async {
-      return (await RespCommandsTier1(_client!).slowlogGet(count))
-          .toArray()
-          .payload;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).slowlogGet(count));
     });
 
     return SlowlogGet.fromResult(result);
@@ -1022,17 +1218,21 @@ class RedisClient {
 
   /// slowlogLen
   Future<int> slowlogLen() async {
-    return await _runWithRetryNew(() async {
-      return (await RespCommandsTier1(_client!).slowlogLen())
-          .toInteger()
-          .payload;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).slowlogLen());
     });
+
+    if (result is RespType2<dynamic>) {
+      return result.toInteger().payload;
+    }
+
+    return (result as RespType3<dynamic>).toInteger().payload;
   }
 
   /// slowlogReset
   Future<void> slowlogReset() async {
     return await _runWithRetryNew(() async {
-      (await RespCommandsTier1(_client!).slowlogReset()).toSimpleString();
+      (await RespCommandsTier1(_client!).slowlogReset());
       return null;
     });
   }
@@ -1043,15 +1243,23 @@ class RedisClient {
   /// jsonArrAppend
   Future<int> jsonArrAppend(String key, Object value,
       {String path = '\$'}) async {
-    List<RespType<dynamic>>? result = await _runWithRetryNew(() async {
+    Object result = await _runWithRetryNew(() async {
       return (await RespCommandsTier1(_client!)
-              .jsonArrAppend(key: key, path: path, value: value))
-          .toArray()
-          .payload;
+          .jsonArrAppend(key: key, path: path, value: value));
     });
 
-    if (result != null && result.isNotEmpty) {
-      return result[0].payload as int; // 确保 payload 是 int 类型
+    if (result is RespType2<dynamic>) {
+      final result1 = result.toArray().payload;
+      if (result1 != null && result1.isNotEmpty) {
+        return result1[0].payload as int;
+      } else {
+        throw Exception('jsonArrAppend: No elements in the result list');
+      }
+    }
+
+    final result1 = (result as RespType3<dynamic>).toArray().payload;
+    if (result1 != null && result1.isNotEmpty) {
+      return result1[0].payload as int;
     } else {
       throw Exception('jsonArrAppend: No elements in the result list');
     }
@@ -1065,21 +1273,25 @@ class RedisClient {
     int? start,
     int? end,
   }) async {
-    List<RespType<dynamic>>? result = await _runWithRetryNew(() async {
+    Object result = await _runWithRetryNew(() async {
       return (await RespCommandsTier1(_client!).jsonArrIndex(
-        key: key,
-        path: path,
-        value: value,
-        start: start,
-        end: end,
-      ))
-          .toArray()
-          .payload;
+          key: key, path: path, value: value, start: start, end: end));
     });
-    if (result != null && result.isNotEmpty) {
-      return result[0].payload as int; // 确保 payload 是 int 类型
+
+    if (result is RespType2<dynamic>) {
+      final result1 = result.toArray().payload;
+      if (result1 != null && result1.isNotEmpty) {
+        return result1[0].payload as int;
+      } else {
+        throw Exception('jsonArrIndex: No elements in the result list');
+      }
+    }
+
+    final result1 = (result as RespType3<dynamic>).toArray().payload;
+    if (result1 != null && result1.isNotEmpty) {
+      return result1[0].payload as int;
     } else {
-      throw Exception('jsonArrAppend: No elements in the result list');
+      throw Exception('jsonArrIndex: No elements in the result list');
     }
   }
 
@@ -1091,56 +1303,72 @@ class RedisClient {
     int? start,
     int? end,
   }) async {
-    List<RespType<dynamic>>? result = await _runWithRetryNew(() async {
+    Object result = await _runWithRetryNew(() async {
       return (await RespCommandsTier1(_client!).jsonArrIndex(
-        key: key,
-        path: path,
-        value: value,
-        start: start,
-        end: end,
-      ))
-          .toArray()
-          .payload;
+          key: key, path: path, value: value, start: start, end: end));
     });
 
-    if (result != null && result.isNotEmpty) {
-      return result[0].payload as int; // 确保 payload 是 int 类型
+    if (result is RespType2<dynamic>) {
+      final result1 = result.toArray().payload;
+      if (result1 != null && result1.isNotEmpty) {
+        return result1[0].payload as int;
+      } else {
+        throw Exception('jsonArrInsert: No elements in the result list');
+      }
+    }
+
+    final result1 = (result as RespType3<dynamic>).toArray().payload;
+    if (result1 != null && result1.isNotEmpty) {
+      return result1[0].payload as int;
     } else {
-      throw Exception('jsonArrAppend: No elements in the result list');
+      throw Exception('jsonArrInsert: No elements in the result list');
     }
   }
 
   /// jsonArrLen
   Future<int> jsonArrLen(String key, {String path = '\$'}) async {
-    List<RespType<dynamic>>? result = await _runWithRetryNew(() async {
+    Object result = await _runWithRetryNew(() async {
       return (await RespCommandsTier1(_client!)
-              .jsonArrLen(key: key, path: path))
-          .toArray()
-          .payload;
+          .jsonArrLen(key: key, path: path));
     });
 
-    if (result != null && result.isNotEmpty) {
-      return result[0].payload as int; // 确保 payload 是 int 类型
+    if (result is RespType2<dynamic>) {
+      final result1 = result.toArray().payload;
+      if (result1 != null && result1.isNotEmpty) {
+        return result1[0].payload as int;
+      } else {
+        throw Exception('jsonArrLen: No elements in the result list');
+      }
+    }
+
+    final result1 = (result as RespType3<dynamic>).toArray().payload;
+    if (result1 != null && result1.isNotEmpty) {
+      return result1[0].payload as int;
     } else {
       throw Exception('jsonArrLen: No elements in the result list');
     }
   }
 
   /// jsonArrPop
-  Future<String> jsonArrPop(
-    String key, {
-    String path = '\$',
-    int index = 0,
-  }) async {
-    List<RespType<dynamic>>? result = await _runWithRetryNew(() async {
+  Future<String> jsonArrPop(String key,
+      {String path = '\$', int index = 0}) async {
+    Object result = await _runWithRetryNew(() async {
       return (await RespCommandsTier1(_client!)
-              .jsonArrPop(key: key, path: path, index: index))
-          .toArray()
-          .payload;
+          .jsonArrPop(key: key, path: path, index: index));
     });
 
-    if (result != null && result.isNotEmpty) {
-      return result[0].payload as String; // 确保 payload 是 string 类型
+    if (result is RespType2<dynamic>) {
+      final result1 = result.toArray().payload;
+      if (result1 != null && result1.isNotEmpty) {
+        return result1[0].payload as String;
+      } else {
+        throw Exception('jsonArrPop: No elements in the result list');
+      }
+    }
+
+    final result1 = (result as RespType3<dynamic>).toArray().payload;
+    if (result1 != null && result1.isNotEmpty) {
+      return result1[0].payload as String;
     } else {
       throw Exception('jsonArrPop: No elements in the result list');
     }
@@ -1153,15 +1381,23 @@ class RedisClient {
     int start = 0,
     int stop = 0,
   }) async {
-    List<RespType<dynamic>>? result = await _runWithRetryNew(() async {
+    Object result = await _runWithRetryNew(() async {
       return (await RespCommandsTier1(_client!)
-              .jsonArrTrim(key: key, path: path, start: start, stop: stop))
-          .toArray()
-          .payload;
+          .jsonArrTrim(key: key, path: path, start: start, stop: stop));
     });
 
-    if (result != null && result.isNotEmpty) {
-      return result[0].payload as int;
+    if (result is RespType2<dynamic>) {
+      final result1 = result.toArray().payload;
+      if (result1 != null && result1.isNotEmpty) {
+        return result1[0].payload as int;
+      } else {
+        throw Exception('jsonArrTrim: No elements in the result list');
+      }
+    }
+
+    final result1 = (result as RespType3<dynamic>).toArray().payload;
+    if (result1 != null && result1.isNotEmpty) {
+      return result1[0].payload as int;
     } else {
       throw Exception('jsonArrTrim: No elements in the result list');
     }
@@ -1172,39 +1408,56 @@ class RedisClient {
     String key, {
     String path = '\$',
   }) async {
-    return await _runWithRetryNew(() async {
-      return (await RespCommandsTier1(_client!).jsonClear(key: key, path: path))
-          .toInteger()
-          .payload;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!)
+          .jsonClear(key: key, path: path));
     });
+
+    if (result is RespType2<dynamic>) {
+      return result.toInteger().payload;
+    }
+
+    return (result as RespType3<dynamic>).toInteger().payload;
   }
 
   /// jsonDel
   Future<int> jsonDel(String key, {String path = '\$'}) async {
-    return await _runWithRetryNew(() async {
-      return (await RespCommandsTier1(_client!).jsonDel(key: key, path: path))
-          .toInteger()
-          .payload;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).jsonDel(key: key, path: path));
     });
+
+    if (result is RespType2<dynamic>) {
+      return result.toInteger().payload;
+    }
+
+    return (result as RespType3<dynamic>).toInteger().payload;
   }
 
   /// jsonForget
   Future<int> jsonForget(String key, {String path = '\$'}) async {
-    return await _runWithRetryNew(() async {
+    Object result = await _runWithRetryNew(() async {
       return (await RespCommandsTier1(_client!)
-              .jsonForget(key: key, path: path))
-          .toInteger()
-          .payload;
+          .jsonForget(key: key, path: path));
     });
+
+    if (result is RespType2<dynamic>) {
+      return result.toInteger().payload;
+    }
+
+    return (result as RespType3<dynamic>).toInteger().payload;
   }
 
   /// jsonGet
   Future<String?> jsonGet(String key, {String path = '\$'}) async {
-    return await _runWithRetryNew(() async {
-      return (await RespCommandsTier1(_client!).jsonGet(key: key, path: path))
-          .toBulkString()
-          .payload;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).jsonGet(key: key, path: path));
     });
+
+    if (result is RespType2<dynamic>) {
+      return result.toBulkString().payload;
+    }
+
+    return (result as RespType3<dynamic>).toBulkString().payload;
   }
 
   /// jsonMerge
@@ -1212,8 +1465,7 @@ class RedisClient {
       {String path = '\$', required value}) async {
     await _runWithRetryNew(() async {
       (await RespCommandsTier1(_client!)
-              .jsonMerge(key: key, path: path, value: value))
-          .toSimpleString();
+          .jsonMerge(key: key, path: path, value: value));
 
       return null;
     });
@@ -1222,19 +1474,22 @@ class RedisClient {
   /// jsonMget
   Future<List<String?>> jsonMget(List<String> keys,
       {String path = '\$'}) async {
-    return await _runWithRetryNew(() async {
-      final result =
-          (await RespCommandsTier1(_client!).jsonMget(keys: keys, path: path))
-              .toArray()
-              .payload;
-
-      if (result != null) {
-        return result
-            .map((e) => e.toBulkString().payload)
-            .toList(growable: false);
-      }
-      return [];
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!)
+          .jsonMget(keys: keys, path: path));
     });
+
+    if (result is RespType2<dynamic>) {
+      final result1 = result.toArray().payload;
+      return result1!
+          .map((e) => e.toBulkString().payload)
+          .toList(growable: false);
+    }
+
+    final result1 = (result as RespType3<dynamic>).toArray().payload;
+    return result1!
+        .map((e) => e.toBulkString().payload)
+        .toList(growable: false);
   }
 
   /// jsonMset
@@ -1242,8 +1497,7 @@ class RedisClient {
       {String path = '\$', required value}) async {
     await _runWithRetryNew(() async {
       (await RespCommandsTier1(_client!)
-              .jsonMset(key: key, path: path, value: value))
-          .toSimpleString();
+          .jsonMset(key: key, path: path, value: value));
 
       return null;
     });
@@ -1255,15 +1509,19 @@ class RedisClient {
     String path = '\$',
     required value,
   }) async {
-    return await _runWithRetryNew(() async {
+    Object result = await _runWithRetryNew(() async {
       return (await RespCommandsTier1(_client!).jsonNumincrby(
         key: key,
         path: path,
         value: value,
-      ))
-          .toBulkString()
-          .payload;
+      ));
     });
+
+    if (result is RespType2<dynamic>) {
+      return result.toBulkString().payload;
+    }
+
+    return (result as RespType3<dynamic>).toBulkString().payload;
   }
 
   /// jsonNummultby
@@ -1272,33 +1530,25 @@ class RedisClient {
     String path = '\$',
     required value,
   }) async {
-    return await _runWithRetryNew(() async {
-      return (await RespCommandsTier1(_client!).jsonNummultby(
-        key: key,
-        path: path,
-        value: value,
-      ))
-          .toBulkString()
-          .payload;
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!)
+          .jsonNummultby(key: key, path: path, value: value));
     });
+
+    if (result is RespType2<dynamic>) {
+      return result.toBulkString().payload;
+    }
+
+    return (result as RespType3<dynamic>).toBulkString().payload;
   }
 
-  /// jsonObjkeys todo待解决
-  // Future<JsonObjkeys> jsonObjkeys(
-  //   String key, {
-  //   String path = '\$',
-  // }) async {
-  //   List<RespType<dynamic>>? result = await _runWithRetryNew(() async {
-  //     (await RespCommandsTier1(_client!).jsonObjkeys(
-  //       key: key,
-  //       path: path,
-  //     ))
-  //         .toArray()
-  //         .payload;
-  //   });
-  //
-  //   return JsonObjkeys.fromResult(result);
-  // }
+  /// jsonObjkeys
+  Future<void> jsonObjkeys(String key, {String path = '\$'}) async {
+    await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!)
+          .jsonObjkeys(key: key, path: path));
+    });
+  }
 
   /// jsonSet
   Future<void> jsonSet({
@@ -1310,48 +1560,59 @@ class RedisClient {
   }) async {
     await _runWithRetryNew(() async {
       (await RespCommandsTier1(_client!)
-              .jsonSet(key: key, path: path, value: value, nx: nx, xx: xx))
-          .toSimpleString();
+          .jsonSet(key: key, path: path, value: value, nx: nx, xx: xx));
     });
     return null;
   }
 
   /// jsonStrappend
-  // Future<List<int>> jsonStrappend(
-  //   String key, {
-  //   String path = '\$',
-  //   required value,
-  // }) async {
-  //   return await _runWithRetryNew(() async {
-  //     final result = (await RespCommandsTier1(_client!).jsonStrappend(
-  //       key: key,
-  //       path: path,
-  //       value: value,
-  //     ))
-  //         .toArray()
-  //         .payload;
-  //
-  //     if (result != null) {
-  //       return result.map((e) => e.toInteger().payload).toList(growable: false);
-  //     }
-  //     return [];
-  //   });
-  // }
+  Future<void> jsonStrappend(
+    String key, {
+    String path = '\$',
+    required value,
+  }) async {
+    await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).jsonStrappend(
+        key: key,
+        path: path,
+        value: value,
+      ));
+    });
+  }
 
   /// jsonStrlen
-  Future<int> jsonStrlen(String key, {String path = '\$'}) async {
-    List<RespType<dynamic>>? result = await _runWithRetryNew(() async {
+  Future<List<int?>> jsonStrlen(String key, {String path = '\$'}) async {
+    Object result = await _runWithRetryNew(() async {
       return (await RespCommandsTier1(_client!)
-              .jsonStrlen(key: key, path: path))
-          .toArray()
-          .payload;
+          .jsonStrlen(key: key, path: path));
     });
 
-    if (result != null && result.isNotEmpty) {
-      return result[0].payload as int;
-    } else {
-      throw Exception('jsonStrlen: No elements in the result list');
+    if (result is RespType2<dynamic>) {
+      final result1 = result.toArray().payload;
+
+      if (result1 != null) {
+        return result1.map((item) {
+          if (item is RespType2<int>) {
+            return item.payload;
+          } else {
+            return null;
+          }
+        }).toList(growable: false);
+      }
+      return [];
     }
+
+    final result1 = (result as RespType3<dynamic>).toArray().payload;
+    if (result1 != null) {
+      return result1.map((item) {
+        if (item is RespType3<int>) {
+          return item.payload;
+        } else {
+          return null;
+        }
+      }).toList(growable: false);
+    }
+    return [];
   }
 
   ///  ------------------------------   Commands  ------------------------------
@@ -1359,17 +1620,22 @@ class RedisClient {
   /// moduleList
   Future<ModuleList> moduleList() async {
     return await _runWithRetryNew(() async {
-      List<RespType<dynamic>>? result = await _runWithRetryNew(() async {
-        return (await RespCommandsTier1(_client!).moduleList())
-            .toArray()
-            .payload;
+      Object result = await _runWithRetryNew(() async {
+        return (await RespCommandsTier1(_client!).moduleList());
       });
-
       return ModuleList.fromResult(result);
     });
   }
 
   /// ------------------------------  end  -----------------------------
+  int getMajorVersion(String version) {
+    List<String> parts = version.split('.');
+    if (parts.isNotEmpty) {
+      return int.parse(parts[0]);
+    } else {
+      throw FormatException('Invalid version format');
+    }
+  }
 }
 
 extension on RedisSocketOptions {

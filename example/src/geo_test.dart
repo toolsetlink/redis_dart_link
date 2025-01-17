@@ -8,12 +8,10 @@ void main() {
     late RedisClient client;
 
     setUpAll(() async {
-      // 初始化Redis客户端，在所有测试用例执行前进行一次初始化
       client = await initRedisClient();
     });
 
     tearDownAll(() async {
-      // 在所有测试用例执行完毕后关闭客户端连接
       await closeRedisClient(client);
     });
 
@@ -63,7 +61,7 @@ void main() {
       } catch (e) {
         print("An error occurred: $e");
       }
-    });
-    // }, skip: 'jsonGet Skipping this test temporarily');
+      // });
+    }, skip: 'jsonGet Skipping this test temporarily');
   });
 }

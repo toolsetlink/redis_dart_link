@@ -37,11 +37,10 @@ void main() {
 
       try {
         await client.ping();
-
         await client.auth("12345");
       } catch (error, stackTrace) {
-        print("ang error: $error");
-        print("ang stackTrace: $stackTrace");
+        print("error: $error");
+        print(" stackTrace: $stackTrace");
       }
     },
     timeout: Timeout(Duration(seconds: 60)), // 设置测试方法超时时间为60秒);

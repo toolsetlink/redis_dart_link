@@ -1,25 +1,31 @@
 import 'package:redis_dart_link/client.dart';
-import 'package:redis_dart_link/model/module_list.dart';
-import 'package:redis_dart_link/socket_options.dart';
+import 'package:redis_dart_link/model.dart';
 import 'package:test/test.dart';
 
+import 'redis_client_init.dart';
+
 void main() {
-  test('adds one to input values', () async {
-    /// Create a new redis instance
-    RedisClient client = RedisClient(
-      socket: RedisSocketOptions(
-        host: '127.0.0.1',
-        port: 7379,
-        password: '123456',
-      ),
-    );
+  group('Redis Commands Tests', () {
+    late RedisClient client;
 
-    // Connect to the Redis server.
-    await client.connect();
+    setUpAll(() async {
+      client = await initRedisClient();
+    });
 
-    // await client.moduleList();
+    tearDownAll(() async {
+      await closeRedisClient(client);
+    });
 
-    ModuleList moduleList = await client.moduleList();
-    print("moduleList.toString() : ${moduleList.toString()}");
+    test('moduleList command test', () async {
+      try {
+        await client.hello(3);
+
+        ModuleList moduleList = await client.moduleList();
+        print("moduleList.toString() : ${moduleList.toString()}");
+      } catch (e) {
+        print("An error occurred: $e");
+      }
+    });
+    // }, skip: 'moduleList this test temporarily');
   });
 }

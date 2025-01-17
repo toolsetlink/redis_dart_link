@@ -7,9 +7,12 @@ part of server;
 /// [outputSink]被[RespClient]用来写请求到服务器。
 /// [inputStream]被[RespClient]使用从服务器读取响应。
 abstract class RespServerConnection {
+  /// outputSink
   StreamSink<List<int>> get outputSink;
 
+  /// inputStream
   Stream<List<int>> get inputStream;
 
+  /// close
   Future<void> close();
 }

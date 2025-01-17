@@ -1,16 +1,30 @@
-import '../src/client.dart';
+part of model;
 
+/// Set
 class Set {
-  final bool ok; // 是否成功
-  final Object? oldVal; // 旧val
+  /// ok 是否成功
+  final bool ok;
 
+  /// oldVal
+  final Object? oldVal;
+
+  /// Set
   Set({
     required this.ok,
     required this.oldVal,
   });
 
-  factory Set.fromResult(RespType<dynamic> result) {
-    return result.handleAs<Set>(
+  /// fromResult
+  factory Set.fromResult(Object result) {
+    if (result is RespType2<dynamic>) {
+      return result.handleAs<Set>(
+        simple: (_) => Set(ok: true, oldVal: null),
+        bulk: (type) => Set(ok: type.payload != null, oldVal: type.payload),
+        error: (_) => Set(ok: false, oldVal: null),
+      );
+    }
+
+    return (result as RespType3<dynamic>).handleAs<Set>(
       simple: (_) => Set(ok: true, oldVal: null),
       bulk: (type) => Set(ok: type.payload != null, oldVal: type.payload),
       error: (_) => Set(ok: false, oldVal: null),

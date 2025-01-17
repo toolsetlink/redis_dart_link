@@ -17,12 +17,12 @@ void main() {
     await client.connect();
 
     // simple
-    // final simpleResponse = await client.execute('ping');
-    // print(simpleResponse.list);
+    final simpleResponse = await client.execute('ping');
+    print(simpleResponse.list);
 
     // bulk
-    // final bulkResponse = await client.execute('info');
-    // print(bulkResponse.list);
+    final bulkResponse = await client.execute('info');
+    print(bulkResponse.list);
 
     // array
     final arrayResponse = await client.execute('module list');
@@ -31,11 +31,11 @@ void main() {
     }
 
     // err
-    // try {
-    //   await client.execute('info111');
-    // } catch (error) {
-    //   print("error: $error");
-    // }
+    try {
+      await client.execute('info111');
+    } catch (error) {
+      print("error: $error");
+    }
 
     // Close the client connection
     await client.disconnect();

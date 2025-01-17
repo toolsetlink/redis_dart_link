@@ -1,23 +1,51 @@
-import '../src/client.dart';
+part of model;
 
 /// GeoPos
 class GeoPos {
-  final List<GeoPoint> positions; // 存储地理坐标的列表
+  /// 存储地理坐标的列表
+  final List<GeoPoint> positions;
 
+  /// GeoPos
   GeoPos({
     required this.positions,
   });
 
-  factory GeoPos.fromResult(List<RespType<dynamic>>? result) {
+  /// fromResult
+  factory GeoPos.fromResult(Object reqResult) {
     var _positions = <GeoPoint>[];
 
+    if (reqResult is RespType2<dynamic>) {
+      final result = reqResult.toArray().payload;
+      if (result != null) {
+        for (var item in result) {
+          if (item is RespArray2) {
+            final coords = item.payload;
+            if (coords != null && coords.length == 2) {
+              final longitudeItem = coords[0] as RespBulkString2;
+              final latitudeItem = coords[1] as RespBulkString2;
+
+              if (longitudeItem.payload != null &&
+                  latitudeItem.payload != null) {
+                final longitude = double.parse(longitudeItem.payload!);
+                final latitude = double.parse(latitudeItem.payload!);
+                _positions
+                    .add(GeoPoint(longitude: longitude, latitude: latitude));
+              }
+            }
+          }
+        }
+      }
+      return GeoPos(positions: _positions);
+    }
+
+    final result = (reqResult as RespType3<dynamic>).toArray().payload;
     if (result != null) {
       for (var item in result) {
-        if (item is RespArray) {
+        if (item is RespArray3) {
           final coords = item.payload;
           if (coords != null && coords.length == 2) {
-            final longitudeItem = coords[0] as RespBulkString;
-            final latitudeItem = coords[1] as RespBulkString;
+            final longitudeItem = coords[0] as RespBulkString2;
+            final latitudeItem = coords[1] as RespBulkString2;
 
             if (longitudeItem.payload != null && latitudeItem.payload != null) {
               final longitude = double.parse(longitudeItem.payload!);

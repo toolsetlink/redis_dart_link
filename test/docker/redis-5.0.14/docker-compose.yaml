@@ -1,0 +1,12 @@
+services:
+  redis: # 服务名称
+    image: redis:5.0.14 # redis镜像版本
+    container_name: redis5.0.14 # 容器名称
+    ports:
+      - 7379:6379 # 指定宿主机端口与容器端口映射关系，宿主机：容器
+    volumes:
+      - ./redis.conf:/etc/redis/redis.conf # 映射配置文件目录，宿主机:容器
+      - ./data:/data # 映射数据目录，宿主机:容器
+    restart: always # 容器开机自启
+    privileged: true # 获取宿主机root权限
+    command: ["redis-server","/etc/redis/redis.conf"] # 指定配置文件启动redis-server进程

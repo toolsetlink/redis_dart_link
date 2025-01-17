@@ -39,7 +39,8 @@ void main() {
       } catch (e) {
         print("An error occurred: $e");
       }
-    }, skip: 'multi Skipping this test temporarily');
+      // }, skip: 'multi Skipping this test temporarily');
+    });
 
     test('multi2 command test', () async {
       try {
@@ -58,41 +59,10 @@ void main() {
         print("multi2 Val.toString() : ${Val2}");
 
         await client.discard();
-
-        ///
       } catch (e) {
         print("An error occurred: $e");
       }
-    }, skip: 'multi Skipping this test temporarily');
-
-    test('multi3 command test', () async {
-      try {
-        await client.multi();
-
-        try {
-          var Val1 = await client.set(
-            'test-multi-1',
-            '"val1"',
-          );
-          print("multi1 Val.toString() : ${Val1}");
-        } catch (e) {
-          print("An error occurred while setting test-multi-1: $e");
-        }
-
-        try {
-          var Val2 = await client.execute('sets 1 1');
-          print("multi2 Val.toString() : ${Val2}");
-        } catch (e) {
-          print("An error occurred while executing sets 1 1: $e");
-        }
-
-        await client.exec();
-
-        ///
-      } catch (e) {
-        print("An error occurred: $e");
-      }
+      // }, skip: 'multi Skipping this test temporarily');
     });
-    // }, skip: 'multi Skipping this test temporarily');
   });
 }

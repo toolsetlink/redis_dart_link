@@ -38,9 +38,6 @@ void main() {
       print('client Stream1 closed'); // 当流关闭时打印消息
     });
 
-    // 保持主程序运行，直到手动终止 // 设置为4分钟
     await Future.delayed(Duration(minutes: 4));
-
-    //
-  }, timeout: Timeout(Duration(minutes: 5))); // 设置为5分钟
+  }, timeout: Timeout(Duration(minutes: 5)));
 }

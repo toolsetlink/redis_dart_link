@@ -1,14 +1,35 @@
-class Info {
-  final ServerInfo server; // 服务器信息
-  final ClientsInfo clients; // 客户端信息
-  final MemoryInfo memory; // 内存信息
-  final PersistenceInfo persistence; // 持久化信息
-  final StatsInfo stats; // 统计信息
-  final ReplicationInfo replication; // 复制信息
-  final CPUInfo cpu; // CPU 使用信息
-  final ClusterInfo cluster; // 集群信息
-  final KeyspaceInfo keyspace; // 键空间信息
+part of model;
 
+/// Info
+class Info {
+  /// 服务器信息
+  final ServerInfo server;
+
+  /// 客户端信息
+  final ClientsInfo clients;
+
+  /// 内存信息
+  final MemoryInfo memory;
+
+  /// 持久化信息
+  final PersistenceInfo persistence;
+
+  /// 统计信息
+  final StatsInfo stats;
+
+  /// 复制信息
+  final ReplicationInfo replication;
+
+  /// CPU 使用信息
+  final CPUInfo cpu;
+
+  /// 集群信息
+  final ClusterInfo cluster;
+
+  /// 键空间信息
+  final KeyspaceInfo keyspace;
+
+  /// Info
   Info({
     required this.server,
     required this.clients,
@@ -35,21 +56,54 @@ class Info {
     );
   }
 
-  factory Info.fromResult(List<String> result) {
+  factory Info.fromResult(Object reqResult) {
     Map<String, String> infoMap = {};
 
-    for (String line in result) {
-      // 忽略空行和以 # 开头的行（节名）
-      if (line.isEmpty || line.startsWith('#')) {
-        continue;
-      }
+    if (reqResult is RespType2<dynamic>) {
+      final bulkString = reqResult.toBulkString().payload;
+      if (bulkString != null) {
+        List<String> result = bulkString
+            .split('\n')
+            .where((e) => e.isNotEmpty)
+            .toList(growable: false);
 
-      // 分割属性行到键值对
-      int delimiterIndex = line.indexOf(':');
-      if (delimiterIndex != -1) {
-        String key = line.substring(0, delimiterIndex);
-        String value = line.substring(delimiterIndex + 1);
-        infoMap[key] = value;
+        for (String line in result) {
+          // 忽略空行和以 # 开头的行（节名）
+          if (line.isEmpty || line.startsWith('#')) {
+            continue;
+          }
+
+          // 分割属性行到键值对
+          int delimiterIndex = line.indexOf(':');
+          if (delimiterIndex != -1) {
+            String key = line.substring(0, delimiterIndex);
+            String value = line.substring(delimiterIndex + 1);
+            infoMap[key] = value;
+          }
+        }
+      }
+    } else if (reqResult is RespType3<dynamic>) {
+      final bulkString = reqResult.toBulkString().payload;
+      if (bulkString != null) {
+        List<String> result = bulkString
+            .split('\n')
+            .where((e) => e.isNotEmpty)
+            .toList(growable: false);
+
+        for (String line in result) {
+          // 忽略空行和以 # 开头的行（节名）
+          if (line.isEmpty || line.startsWith('#')) {
+            continue;
+          }
+
+          // 分割属性行到键值对
+          int delimiterIndex = line.indexOf(':');
+          if (delimiterIndex != -1) {
+            String key = line.substring(0, delimiterIndex);
+            String value = line.substring(delimiterIndex + 1);
+            infoMap[key] = value;
+          }
+        }
       }
     }
 
@@ -67,27 +121,66 @@ class Info {
   }
 }
 
+/// ServerInfo
 class ServerInfo {
-  final String redisVersion; // Redis 版本
-  final String redisGitSha1; // Git SHA1
-  final bool redisGitDirty; // Git 仓库是否有未提交的修改
-  final String redisBuildId; // 构建 ID
-  final String redisMode; // Redis 运行模式（例如 standalone）
-  final String os; // 操作系统
-  final int archBits; // 架构位数（32 或 64）
-  final String multiplexingApi; // 多路复用 API
-  final String atomicvarApi; // 原子变量 API
-  final String gccVersion; // GCC 编译器版本
-  final int processId; // 当前 Redis 服务器的进程 ID
-  final String runId; // Redis 服务器的运行 ID
-  final int tcpPort; // TCP 连接的端口
-  final int uptimeInSeconds; // Redis 已运行的时间（秒）
-  final int uptimeInDays; // Redis 已运行的时间（天）
-  final int hz; // Redis 每秒进行的调度次数
-  final int lruClock; // 服务器的 LRU 时钟
-  final String executable; // Redis 可执行文件的路径
-  final String configFile; // 配置文件的路径
+  /// Redis 版本
+  final String redisVersion;
 
+  /// Git SHA1
+  final String redisGitSha1;
+
+  /// Git 仓库是否有未提交的修改
+  final bool redisGitDirty;
+
+  /// 构建 ID
+  final String redisBuildId;
+
+  /// Redis 运行模式（例如 standalone）
+  final String redisMode;
+
+  /// 操作系统
+  final String os;
+
+  /// 架构位数（32 或 64）
+  final int archBits;
+
+  /// 多路复用 API
+  final String multiplexingApi;
+
+  /// 原子变量 API
+  final String atomicvarApi;
+
+  /// GCC 编译器版本
+  final String gccVersion;
+
+  /// 当前 Redis 服务器的进程 ID
+  final int processId;
+
+  /// Redis 服务器的运行 ID
+  final String runId;
+
+  /// TCP 连接的端口
+  final int tcpPort;
+
+  /// Redis 已运行的时间（秒）
+  final int uptimeInSeconds;
+
+  /// Redis 已运行的时间（天）
+  final int uptimeInDays;
+
+  /// Redis 每秒进行的调度次数
+  final int hz;
+
+  /// 服务器的 LRU 时钟
+  final int lruClock;
+
+  /// Redis 可执行文件的路径
+  final String executable;
+
+  /// 配置文件的路径
+  final String configFile;
+
+  /// ServerInfo
   ServerInfo({
     required this.redisVersion,
     required this.redisGitSha1,
@@ -110,6 +203,7 @@ class ServerInfo {
     required this.configFile,
   });
 
+  /// fromMap
   factory ServerInfo.fromMap(Map<String, String> map) {
     return ServerInfo(
       redisVersion: map['redis_version'] ?? '',
@@ -135,12 +229,21 @@ class ServerInfo {
   }
 }
 
+/// ClientsInfo
 class ClientsInfo {
-  final int connectedClients; // 已连接的客户端数量
-  final int clientLongestOutputList; // 客户端输出列表最长的长度
-  final int clientBiggestInputBuf; // 客户端输入缓存区最大的长度
-  final int blockedClients; // 被阻塞的客户端数量
+  /// 已连接的客户端数量
+  final int connectedClients;
 
+  /// 客户端输出列表最长的长度
+  final int clientLongestOutputList;
+
+  /// 客户端输入缓存区最大的长度
+  final int clientBiggestInputBuf;
+
+  /// 被阻塞的客户端数量
+  final int blockedClients;
+
+  /// ClientsInfo
   ClientsInfo({
     required this.connectedClients,
     required this.clientLongestOutputList,
@@ -148,6 +251,7 @@ class ClientsInfo {
     required this.blockedClients,
   });
 
+  /// fromMap
   factory ClientsInfo.fromMap(Map<String, String> map) {
     return ClientsInfo(
       connectedClients: int.parse(map['connected_clients'] ?? '0'),
@@ -159,30 +263,75 @@ class ClientsInfo {
   }
 }
 
+/// MemoryInfo
 class MemoryInfo {
-  final int usedMemory; // 已使用内存
-  final String usedMemoryHuman; // 已使用内存（人类可读格式）
-  final int usedMemoryRss; // 已使用内存的常驻集大小（RSS）
-  final String usedMemoryRssHuman; // 已使用RSS（人类可读格式）
-  final int usedMemoryPeak; // 内存使用峰值
-  final String usedMemoryPeakHuman; // 内存使用峰值（人类可读格式）
-  final String usedMemoryPeakPerc; // 内存使用峰值百分比
-  final int usedMemoryOverhead; // 内存开销
-  final int usedMemoryStartup; // 启动时的内存使用量
-  final int usedMemoryDataset; // 数据集的内存使用量
-  final String usedMemoryDatasetPerc; // 数据集的内存使用百分比
-  final int totalSystemMemory; // 系统总内存
-  final String totalSystemMemoryHuman; // 系统总内存（人类可读格式）
-  final int usedMemoryLua; // Lua 脚本引擎的内存使用量
-  final String usedMemoryLuaHuman; // Lua 脚本引擎的内存使用量（人类可读格式）
-  final int maxMemory; // 配置的最大内存容量
-  final String maxMemoryHuman; // 最大内存容量（人类可读格式）
-  final String maxMemoryPolicy; // 内存淘汰策略
-  final double memFragmentationRatio; // 内存碎片率
-  final String memAllocator; // 内存分配器
-  final int activeDefragRunning; // 是否正在进行主动内存碎片整理
-  final int lazyfreePendingObjects; // 待释放的对象数量
+  /// 已使用内存
+  final int usedMemory;
 
+  /// 已使用内存（人类可读格式）
+  final String usedMemoryHuman;
+
+  /// 已使用内存的常驻集大小（RSS）
+  final int usedMemoryRss;
+
+  /// 已使用RSS（人类可读格式）
+  final String usedMemoryRssHuman;
+
+  /// 内存使用峰值
+  final int usedMemoryPeak;
+
+  /// 内存使用峰值（人类可读格式）
+  final String usedMemoryPeakHuman;
+
+  /// 内存使用峰值百分比
+  final String usedMemoryPeakPerc;
+
+  /// 内存开销
+  final int usedMemoryOverhead;
+
+  /// 启动时的内存使用量
+  final int usedMemoryStartup;
+
+  /// 数据集的内存使用量
+  final int usedMemoryDataset;
+
+  /// 数据集的内存使用百分比
+  final String usedMemoryDatasetPerc;
+
+  /// 系统总内存
+  final int totalSystemMemory;
+
+  /// 系统总内存（人类可读格式）
+  final String totalSystemMemoryHuman;
+
+  /// Lua 脚本引擎的内存使用量
+  final int usedMemoryLua;
+
+  /// Lua 脚本引擎的内存使用量（人类可读格式）
+  final String usedMemoryLuaHuman;
+
+  /// 配置的最大内存容量
+  final int maxMemory;
+
+  /// 最大内存容量（人类可读格式）
+  final String maxMemoryHuman;
+
+  /// 内存淘汰策略
+  final String maxMemoryPolicy;
+
+  /// 内存碎片率
+  final double memFragmentationRatio;
+
+  /// 内存分配器
+  final String memAllocator;
+
+  /// 是否正在进行主动内存碎片整理
+  final int activeDefragRunning;
+
+  /// 待释放的对象数量
+  final int lazyfreePendingObjects;
+
+  /// MemoryInfo
   MemoryInfo({
     required this.usedMemory,
     required this.usedMemoryHuman,
@@ -208,6 +357,7 @@ class MemoryInfo {
     required this.lazyfreePendingObjects,
   });
 
+  /// fromMap
   factory MemoryInfo.fromMap(Map<String, String> map) {
     return MemoryInfo(
       usedMemory: int.parse(map['used_memory'] ?? '0'),
@@ -237,31 +387,78 @@ class MemoryInfo {
   }
 }
 
+/// PersistenceInfo
 class PersistenceInfo {
-  final int loading; // 是否正在载入 RDB 文件
-  final int rdbChangesSinceLastSave; // 自上次保存以来的变更次数
-  final int rdbBgsaveInProgress; // 是否正在进行 RDB 后台保存
-  final int rdbLastSaveTime; // 上次成功保存 RDB 的时间戳
-  final String rdbLastBgsaveStatus; // 上次 RDB 后台保存的状态
-  final int rdbLastBgsaveTimeSec; // 上次 RDB 后台保存耗时（秒）
-  final int rdbCurrentBgsaveTimeSec; // 当前 RDB 后台保存耗时（秒）
-  final int rdbLastCowSize; // 上次 RDB 写时复制大小
-  final int aofEnabled; // 是否启用 AOF
-  final int aofRewriteInProgress; // 是否正在进行 AOF 重写
-  final int aofRewriteScheduled; // 是否计划进行 AOF 重写
-  final int aofLastRewriteTimeSec; // 上次 AOF 重写耗时（秒）
-  final int aofCurrentRewriteTimeSec; // 当前 AOF 重写耗时（秒）
-  final String aofLastBgrewriteStatus; // 上次 AOF 后台重写状态
-  final String aofLastWriteStatus; // 上次 AOF 写入状态
-  final int aofLastCowSize; // 上次 AOF 写时复制大小
-  final int aofCurrentSize; // 当前 AOF 文件大小
-  final int aofBaseSize; // AOF 基础大小
-  final int aofPendingRewrite; // 待处理的 AOF 重写数量
-  final int aofBufferLength; // AOF 缓冲区长度
-  final int aofRewriteBufferLength; // AOF 重写缓冲区长度
-  final int aofPendingBioFsync; // 待处理的 AOF BIO 同步数量
-  final int aofDelayedFsync; // 延迟的 AOF 同步数量
+  /// 是否正在载入 RDB 文件
+  final int loading;
 
+  /// 自上次保存以来的变更次数
+  final int rdbChangesSinceLastSave;
+
+  /// 是否正在进行 RDB 后台保存
+  final int rdbBgsaveInProgress;
+
+  /// 上次成功保存 RDB 的时间戳
+  final int rdbLastSaveTime;
+
+  /// 上次 RDB 后台保存的状态
+  final String rdbLastBgsaveStatus;
+
+  /// 上次 RDB 后台保存耗时（秒）
+  final int rdbLastBgsaveTimeSec;
+
+  /// 当前 RDB 后台保存耗时（秒）
+  final int rdbCurrentBgsaveTimeSec;
+
+  /// 上次 RDB 写时复制大小
+  final int rdbLastCowSize;
+
+  /// 是否启用 AOF
+  final int aofEnabled;
+
+  /// 是否正在进行 AOF 重写
+  final int aofRewriteInProgress;
+
+  /// 是否计划进行 AOF 重写
+  final int aofRewriteScheduled;
+
+  /// 上次 AOF 重写耗时（秒）
+  final int aofLastRewriteTimeSec;
+
+  /// 当前 AOF 重写耗时（秒）
+  final int aofCurrentRewriteTimeSec;
+
+  /// 上次 AOF 后台重写状态
+  final String aofLastBgrewriteStatus;
+
+  /// 上次 AOF 写入状态
+  final String aofLastWriteStatus;
+
+  /// 上次 AOF 写时复制大小
+  final int aofLastCowSize;
+
+  /// 当前 AOF 文件大小
+  final int aofCurrentSize;
+
+  /// AOF 基础大小
+  final int aofBaseSize;
+
+  /// 待处理的 AOF 重写数量
+  final int aofPendingRewrite;
+
+  /// AOF 缓冲区长度
+  final int aofBufferLength;
+
+  /// AOF 重写缓冲区长度
+  final int aofRewriteBufferLength;
+
+  /// 待处理的 AOF BIO 同步数量
+  final int aofPendingBioFsync;
+
+  /// 延迟的 AOF 同步数量
+  final int aofDelayedFsync;
+
+  /// PersistenceInfo
   PersistenceInfo({
     required this.loading,
     required this.rdbChangesSinceLastSave,
@@ -288,6 +485,7 @@ class PersistenceInfo {
     required this.aofDelayedFsync,
   });
 
+  /// fromMap
   factory PersistenceInfo.fromMap(Map<String, String> map) {
     return PersistenceInfo(
       loading: int.parse(map['loading'] ?? '0'),
@@ -321,34 +519,87 @@ class PersistenceInfo {
   }
 }
 
+/// StatsInfo
 class StatsInfo {
-  final int totalConnectionsReceived; // 已接收的连接总数
-  final int totalCommandsProcessed; // 已处理的命令总数
-  final int instantaneousOpsPerSec; // 每秒瞬时操作数
-  final int totalNetInputBytes; // 网络输入字节总数
-  final int totalNetOutputBytes; // 网络输出字节总数
-  final double instantaneousInputKbps; // 每秒瞬时输入速率（KB）
-  final double instantaneousOutputKbps; // 每秒瞬时输出速率（KB）
-  final int rejectedConnections; // 拒绝的连接总数
-  final int syncFull; // 全量同步次数
-  final int syncPartialOk; // 成功的部分同步次数
-  final int syncPartialErr; // 失败的部分同步次数
-  final int expiredKeys; // 已过期键的数量
-  final double expiredStalePerc; // 已过期键过时百分比
-  final int expiredTimeCapReachedCount; // 达到时间上限的过期键数量
-  final int evictedKeys; // 被驱逐的键数量
-  final int keyspaceHits; // 键空间命中次数
-  final int keyspaceMisses; // 键空间丢失次数
-  final int pubsubChannels; // 发布订阅频道数量
-  final int pubsubPatterns; // 发布订阅模式数量
-  final int latestForkUsec; // 最近一次 fork 操作的耗时（微秒）
-  final int migrateCachedSockets; // 缓存的迁移套接字数量
-  final int slaveExpiresTrackedKeys; // 被跟踪的到期键数量
-  final int activeDefragHits; // 主动内存重整命中次数
-  final int activeDefragMisses; // 主动内存重整丢失次数
-  final int activeDefragKeyHits; // 主动内存重整键命中次数
-  final int activeDefragKeyMisses; // 主动内存重整键丢失次数
+  /// 已接收的连接总数
+  final int totalConnectionsReceived;
 
+  /// 已处理的命令总数
+  final int totalCommandsProcessed;
+
+  /// 每秒瞬时操作数
+  final int instantaneousOpsPerSec;
+
+  /// 网络输入字节总数
+  final int totalNetInputBytes;
+
+  /// 网络输出字节总数
+  final int totalNetOutputBytes;
+
+  /// 每秒瞬时输入速率（KB）
+  final double instantaneousInputKbps;
+
+  /// 每秒瞬时输出速率（KB）
+  final double instantaneousOutputKbps;
+
+  /// 拒绝的连接总数
+  final int rejectedConnections;
+
+  /// 全量同步次数
+  final int syncFull;
+
+  /// 成功的部分同步次数
+  final int syncPartialOk;
+
+  /// 失败的部分同步次数
+  final int syncPartialErr;
+
+  /// 已过期键的数量
+  final int expiredKeys;
+
+  /// 已过期键过时百分比
+  final double expiredStalePerc;
+
+  /// 达到时间上限的过期键数量
+  final int expiredTimeCapReachedCount;
+
+  /// 被驱逐的键数量
+  final int evictedKeys;
+
+  /// 键空间命中次数
+  final int keyspaceHits;
+
+  /// 键空间丢失次数
+  final int keyspaceMisses;
+
+  /// 发布订阅频道数量
+  final int pubsubChannels;
+
+  /// 发布订阅模式数量
+  final int pubsubPatterns;
+
+  /// 最近一次 fork 操作的耗时（微秒）
+  final int latestForkUsec;
+
+  /// 缓存的迁移套接字数量
+  final int migrateCachedSockets;
+
+  /// 被跟踪的到期键数量
+  final int slaveExpiresTrackedKeys;
+
+  /// 主动内存重整命中次数
+  final int activeDefragHits;
+
+  /// 主动内存重整丢失次数
+  final int activeDefragMisses;
+
+  /// 主动内存重整键命中次数
+  final int activeDefragKeyHits;
+
+  /// 主动内存重整键丢失次数
+  final int activeDefragKeyMisses;
+
+  /// StatsInfo
   StatsInfo({
     required this.totalConnectionsReceived,
     required this.totalCommandsProcessed,
@@ -378,6 +629,7 @@ class StatsInfo {
     required this.activeDefragKeyMisses,
   });
 
+  /// fromMap
   factory StatsInfo.fromMap(Map<String, String> map) {
     return StatsInfo(
       totalConnectionsReceived:
@@ -416,19 +668,42 @@ class StatsInfo {
   }
 }
 
+/// ReplicationInfo
 class ReplicationInfo {
-  final String role; // 角色（master 或 slave）
-  final int connectedSlaves; // 已连接的从节点数量
-  final List<SlaveInfo> slaves; // 从节点信息
-  final String masterReplid; // 主节点复制 ID
-  final String masterReplid2; // 主节点复制 ID（第二个）
-  final int masterReplOffset; // 主节点复制偏移量
-  final int secondReplOffset; // 第二个复制偏移量
-  final int replBacklogActive; // 是否启用复制积压
-  final int replBacklogSize; // 复制积压大小
-  final int replBacklogFirstByteOffset; // 复制积压第一个字节偏移量
-  final int replBacklogHistlen; // 复制积压历史长度
+  /// 角色（master 或 slave）
+  final String role;
 
+  /// 已连接的从节点数量
+  final int connectedSlaves;
+
+  /// 从节点信息
+  final List<SlaveInfo> slaves;
+
+  /// 主节点复制 ID
+  final String masterReplid;
+
+  /// 主节点复制 ID（第二个）
+  final String masterReplid2;
+
+  /// 主节点复制偏移量
+  final int masterReplOffset;
+
+  /// 第二个复制偏移量
+  final int secondReplOffset;
+
+  /// 是否启用复制积压
+  final int replBacklogActive;
+
+  /// 复制积压大小
+  final int replBacklogSize;
+
+  /// 复制积压第一个字节偏移量
+  final int replBacklogFirstByteOffset;
+
+  /// 复制积压历史长度
+  final int replBacklogHistlen;
+
+  /// ReplicationInfo
   ReplicationInfo({
     required this.role,
     required this.connectedSlaves,
@@ -443,6 +718,7 @@ class ReplicationInfo {
     required this.replBacklogHistlen,
   });
 
+  /// fromMap
   factory ReplicationInfo.fromMap(Map<String, String> map) {
     List<SlaveInfo> slaves = [];
     for (int i = 0; i < int.parse(map['connected_slaves'] ?? '0'); i++) {
@@ -465,13 +741,24 @@ class ReplicationInfo {
   }
 }
 
+/// SlaveInfo
 class SlaveInfo {
-  final String ip; // 从节点的IP地址
-  final int port; // 从节点的端口
-  final String state; // 从节点的状态
-  final int offset; // 从节点的复制偏移量
-  final int lag; // 从节点的复制延迟
+  /// 从节点的IP地址
+  final String ip;
 
+  /// 从节点的端口
+  final int port;
+
+  /// 从节点的状态
+  final String state;
+
+  /// 从节点的复制偏移量
+  final int offset;
+
+  /// 从节点的复制延迟
+  final int lag;
+
+  /// SlaveInfo
   SlaveInfo({
     required this.ip,
     required this.port,
@@ -480,6 +767,7 @@ class SlaveInfo {
     required this.lag,
   });
 
+  /// fromMap
   factory SlaveInfo.fromMap(Map<String, String> map, int index) {
     return SlaveInfo(
       ip: map['slave${index}_ip'] ?? '',
@@ -491,12 +779,21 @@ class SlaveInfo {
   }
 }
 
+/// CPUInfo
 class CPUInfo {
-  final double usedCpuSys; // 系统 CPU 使用时间
-  final double usedCpuUser; // 用户 CPU 使用时间
-  final double usedCpuSysChildren; // 子进程的系统 CPU 使用时间
-  final double usedCpuUserChildren; // 子进程的用户 CPU 使用时间
+  /// 系统 CPU 使用时间
+  final double usedCpuSys;
 
+  /// 用户 CPU 使用时间
+  final double usedCpuUser;
+
+  /// 子进程的系统 CPU 使用时间
+  final double usedCpuSysChildren;
+
+  /// 子进程的用户 CPU 使用时间
+  final double usedCpuUserChildren;
+
+  /// CPUInfo
   CPUInfo({
     required this.usedCpuSys,
     required this.usedCpuUser,
@@ -504,6 +801,7 @@ class CPUInfo {
     required this.usedCpuUserChildren,
   });
 
+  /// fromMap
   factory CPUInfo.fromMap(Map<String, String> map) {
     return CPUInfo(
       usedCpuSys: double.parse(map['used_cpu_sys'] ?? '0'),
@@ -514,13 +812,17 @@ class CPUInfo {
   }
 }
 
+/// ClusterInfo
 class ClusterInfo {
-  final bool clusterEnabled; // 是否启用集群模式
+  /// 是否启用集群模式
+  final bool clusterEnabled;
 
+  /// ClusterInfo
   ClusterInfo({
     required this.clusterEnabled,
   });
 
+  /// fromMap
   factory ClusterInfo.fromMap(Map<String, String> map) {
     return ClusterInfo(
       clusterEnabled: map['cluster_enabled'] == '1',
@@ -528,13 +830,17 @@ class ClusterInfo {
   }
 }
 
+/// KeyspaceInfo
 class KeyspaceInfo {
-  final List<DBInfo> databases; // 数据库信息
+  /// 数据库信息
+  final List<DBInfo> databases;
 
+  /// KeyspaceInfo
   KeyspaceInfo({
     required this.databases,
   });
 
+  /// fromMap
   factory KeyspaceInfo.fromMap(Map<String, String> map) {
     final dbMap = <int, DBInfo>{};
 
@@ -564,7 +870,6 @@ class KeyspaceInfo {
     return KeyspaceInfo(databases: databases);
   }
 
-  // 重写toString方法
   @override
   String toString() {
     // 使用map方法将每个DBInfo对象转换为字符串，然后使用join方法将它们连接起来
@@ -572,17 +877,25 @@ class KeyspaceInfo {
   }
 }
 
+/// DBInfo
 class DBInfo {
-  final int keys; // 键的数量
-  final int expires; // 设置了过期时间的键的数量
-  final int avgTtl; // 平均 TTL（毫秒）
+  /// 键的数量
+  final int keys;
 
+  /// 设置了过期时间的键的数量
+  final int expires;
+
+  /// 平均 TTL（毫秒）
+  final int avgTtl;
+
+  /// DBInfo
   DBInfo({
     required this.keys,
     required this.expires,
     required this.avgTtl,
   });
 
+  /// fromString
   factory DBInfo.fromString(String str) {
     final parts = str.split(',');
     final info = <String, int>{};
@@ -597,7 +910,6 @@ class DBInfo {
     );
   }
 
-  // 重写toString方法
   @override
   String toString() {
     return 'DBInfo{keys: $keys, expires: $expires, avgTtl: $avgTtl}';
