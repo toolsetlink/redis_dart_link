@@ -991,6 +991,40 @@ class RedisClient {
   }
 
   ///  ------------------------------   HyperLogLog  ------------------------------
+
+  /// pfadd
+  Future<bool> pfadd(String key, List<Object> values) async {
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).pfadd(key, values));
+    });
+
+    if (result is RespType2<dynamic>) {
+      return result.toInteger().payload == 1;
+    }
+
+    return (result as RespType3<dynamic>).toInteger().payload == 1;
+  }
+
+  /// pfcount
+  Future<int> pfcount(List<Object> keys) async {
+    Object result = await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).pfcount(keys));
+    });
+
+    if (result is RespType2<dynamic>) {
+      return result.toInteger().payload;
+    }
+
+    return (result as RespType3<dynamic>).toInteger().payload;
+  }
+
+  /// pfmerge
+  Future<void> pfmerge(String destkey, List<Object> sourcekeys) async {
+    await _runWithRetryNew(() async {
+      return (await RespCommandsTier1(_client!).pfmerge(destkey, sourcekeys));
+    });
+  }
+
   ///  ------------------------------   Geo  ------------------------------
   /// geoAdd
   Future<int> geoAdd(

@@ -1,5 +1,9 @@
 # Changelog
 
+### [0.3.0] - 2025-01-21
+- Supports the hyperloglog command
+- 支持hyperloglog命令
+
 ### [0.2.0] - 2025-01-17
 - Support resp3 protocol
 - 支持 resp3 协议

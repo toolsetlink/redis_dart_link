@@ -431,6 +431,22 @@ class RespCommandsTier1 {
   }
 
   ///  ------------------------------   HyperLogLog  ------------------------------
+
+  /// pfadd
+  Future<Object> pfadd(String key, List<Object> values) async {
+    return tier0.execute(['PFADD', key, ...values]);
+  }
+
+  /// pfcount
+  Future<Object> pfcount(List<Object> keys) async {
+    return tier0.execute(['PFCOUNT', ...keys]);
+  }
+
+  /// pfmerge
+  Future<Object> pfmerge(String destkey, List<Object> sourcekeys) async {
+    return tier0.execute(['PFMERGE', destkey, ...sourcekeys]);
+  }
+
   ///  ------------------------------   Geo  ------------------------------
   /// geoAdd
   Future<Object> geoAdd(
